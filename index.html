@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>IDN SOFTBALL | 印第安慢壘隊</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* --- CSS 變數 --- */
+        :root {
+            --idn-blue: #00558F; --idn-gold: #B4975A; --idn-black: #222222; --idn-gray: #f4f4f4;
+            --card-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Roboto', 'Noto Sans TC', sans-serif; -webkit-tap-highlight-color: transparent; outline: none; /* 移除點擊外框 */ }
+        body { background-color: var(--idn-gray); color: #333; line-height: 1.6; overflow-x: hidden; }
+        html { scroll-behavior: smooth; }
+
+        /* --- 載入動畫 --- */
+        #loader { position: fixed; top:0; left:0; width:100%; height:100%; background:white; z-index:9999; display: flex; justify-content: center; align-items: center; flex-direction: column; transition: opacity 0.5s; }
+        .loader-icon { font-size: 3rem; color: var(--idn-blue); animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { transform: scale(0.9); opacity: 0.7; } 50% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(0.9); opacity: 0.7; } }
+
+        /* --- 導航列 --- */
+        nav { background: linear-gradient(to right, var(--idn-blue), #003366); padding: 1rem 5%; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 15px rgba(0,0,0,0.3); }
+        .logo { font-size: 1.6rem; font-weight: 900; color: var(--idn-gold); letter-spacing: 1px; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); }
+        .nav-links { display: flex; gap: 25px; }
+        .nav-links a { color: rgba(255,255,255,0.9); text-decoration: none; font-weight: 500; font-size: 1.05rem; transition: all 0.3s; position: relative; }
+        .nav-links a::after { content: ''; position: absolute; bottom: -5px; left: 0; width: 0%; height: 2px; background: var(--idn-gold); transition: width 0.3s; }
+        .nav-links a:hover { color: var(--idn-gold); }
+        .nav-links a:hover::after { width: 100%; }
+
+        /* --- Hero 首圖與 MVP 功能 --- */
+        header { height: 70vh; background-color: #1a1a1a; background-size: cover; background-position: center; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: white; position: relative; overflow: hidden; }
+        header::after { content: ''; position: absolute; top:0; left:0; width:100%; height:100%; background: linear-gradient(to bottom, rgba(0,40,80, 0.4), rgba(0,0,0,0.7)); z-index: 0;}
+        .hero-content { position: relative; z-index: 1; animation: fadeInUp 1s ease-out; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        .hero-title { font-size: 4rem; font-weight: 900; text-shadow: 2px 2px 15px rgba(0,0,0,0.8); letter-spacing: 2px; margin-bottom: 10px; }
+        .hero-subtitle { font-size: 1.4rem; color: var(--idn-gold); font-weight: bold; letter-spacing: 4px; text-shadow: 1px 1px 5px rgba(0,0,0,0.6); text-transform: uppercase; }
+
+        /* MVP 按鈕 */
+        .mvp-btn { position: absolute; bottom: 30px; left: 30px; z-index: 2; background: rgba(0,0,0,0.6); border: 2px solid var(--idn-gold); color: var(--idn-gold); padding: 10px 20px; border-radius: 50px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: all 0.3s; backdrop-filter: blur(5px); }
+        .mvp-btn i { font-size: 1.2rem; }
+        .mvp-btn:hover { background: var(--idn-gold); color: #000; transform: scale(1.05); box-shadow: 0 0 20px rgba(180, 151, 90, 0.6); }
+        
+        /* MVP 影片覆蓋層 */
+        #hero-video-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: #000; z-index: 10; display: none; /* 預設隱藏 */ }
+        #hero-video-frame { width: 100%; height: 100%; border: none; }
+        .close-hero-video { position: absolute; top: 20px; right: 20px; color: white; font-size: 2rem; cursor: pointer; z-index: 11; opacity: 0.7; transition: opacity 0.3s; }
+        .close-hero-video:hover { opacity: 1; }
+
+        /* --- 通用區塊 --- */
+        section { padding: 5rem 5%; max-width: 1280px; margin: 0 auto; }
+        .section-title { text-align: center; font-size: 2.2rem; color: var(--idn-blue); margin-bottom: 2.5rem; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 15px; letter-spacing: 1px; }
+        .yt-link { color: #FF0000; font-size: 2.2rem; transition: transform 0.2s; display: flex; align-items: center; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); }
+        .yt-link:hover { transform: scale(1.15); }
+
+        /* --- 賽程表 --- */
+        .schedule-controls { display: flex; justify-content: flex-end; margin-bottom: 1rem; }
+        .btn-main { background: linear-gradient(135deg, var(--idn-gold), #9c824a); color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: all 0.2s; box-shadow: 0 4px 10px rgba(180, 151, 90, 0.4); display: flex; align-items: center; gap: 8px; }
+        .btn-main:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(180, 151, 90, 0.6); }
+        .schedule-table-container { overflow-x: auto; background: white; border-radius: 12px; box-shadow: var(--card-shadow); margin-bottom: 1rem; border-top: 4px solid var(--idn-blue); }
+        table { width: 100%; border-collapse: collapse; min-width: 950px; font-size: 1rem; }
+        th, td { padding: 16px 12px; text-align: center; border-bottom: 1px solid #eee; vertical-align: middle; }
+        th { background: #f0f4f8; color: var(--idn-blue); font-weight: 800; white-space: nowrap; text-transform: uppercase; }
+        .col-date { white-space: nowrap; font-weight: 800; color: var(--idn-blue); }
+        .col-loc { font-weight: 700; color: #444; }
+        .time-cell { font-family: 'Roboto Mono', monospace; color: #555; font-weight: 500; }
+        .remark-cell { font-size: 0.95rem; color: #666; text-align: left; max-width: 250px; }
+        .see-more-container { text-align: center; margin-top: 25px; }
+        .btn-outline { background: transparent; border: 2px solid var(--idn-blue); color: var(--idn-blue); padding: 12px 30px; border-radius: 30px; cursor: pointer; font-weight: bold; transition: all 0.3s; font-size: 1rem; }
+        .btn-outline:hover { background: var(--idn-blue); color: white; }
+
+        /* --- 影音櫥窗 (現代版) --- */
+        .video-grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; padding-bottom: 20px; }
+        .video-card { position: relative; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.4); cursor: pointer; border: 2px solid transparent; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); background: #000; }
+        @media (min-width: 768px) { .video-card:first-child { grid-column: span 2; grid-row: span 2; } .video-card:first-child .video-title { font-size: 1.3rem; padding: 20px; background: linear-gradient(to top, rgba(0,0,0,0.95) 30%, transparent); } }
+        .thumb-wrapper { position: relative; width: 100%; padding-top: 56.25%; overflow: hidden; }
+        .video-thumb { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.9; transition: transform 0.5s, opacity 0.5s; }
+        .video-card:hover { transform: translateY(-7px); border-color: var(--idn-gold); box-shadow: 0 15px 35px rgba(180, 151, 90, 0.4); }
+        .video-card:hover .video-thumb { transform: scale(1.1); opacity: 0.5; }
+        .play-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease; z-index: 2; }
+        .play-icon-glow { font-size: 4.5rem; color: white; text-shadow: 0 0 25px var(--idn-blue), 0 0 10px rgba(255,255,255,0.9); transform: scale(0.8); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .video-card:hover .play-overlay { opacity: 1; } .video-card:hover .play-icon-glow { transform: scale(1); }
+        .video-title { position: absolute; bottom: 0; left: 0; width: 100%; padding: 15px; color: white; font-size: 1rem; font-weight: 500; background: linear-gradient(to top, rgba(0,0,0,0.9) 20%, transparent); z-index: 3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        /* --- 球員介紹 (含搜尋) --- */
+        /* 搜尋欄樣式 */
+        .player-search-container { max-width: 600px; margin: 0 auto 30px; position: relative; }
+        .player-search-input { width: 100%; padding: 15px 20px 15px 50px; border: 2px solid #e0e0e0; border-radius: 50px; font-size: 1.1rem; transition: all 0.3s; background: white; }
+        .player-search-input:focus { border-color: var(--idn-blue); box-shadow: 0 0 15px rgba(0, 85, 143, 0.2); }
+        .search-icon { position: absolute; top: 50%; left: 20px; transform: translateY(-50%); color: #aaa; font-size: 1.2rem; }
+
+        .players-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 25px; }
+        .player-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: var(--card-shadow); text-align: center; border-top: 5px solid var(--idn-gold); transition: all 0.3s; }
+        .player-card:hover { transform: translateY(-10px); }
+        .player-img-container { width: 100%; height: 220px; background: #e0e0e0; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .player-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
+        .player-card:hover .player-img { transform: scale(1.08); }
+        .player-info { padding: 18px; }
+        .player-name-full { font-size: 1.3rem; font-weight: 800; color: var(--idn-blue); margin-bottom: 8px; }
+        .player-pos { font-size: 0.9rem; color: #ffffff; background: var(--idn-blue); padding: 4px 12px; border-radius: 20px; display: inline-block; font-weight: 500; }
+
+        /* --- 管理介面彈窗 --- */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+        .modal-content { background: white; padding: 2.5rem; border-radius: 16px; width: 95%; max-width: 650px; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px rgba(0,0,0,0.3); }
+        .close-modal { position: absolute; top: 20px; right: 25px; font-size: 1.8rem; cursor: pointer; color: #999; }
+        .close-modal:hover { color: var(--idn-blue); }
+        
+        /* 管理頁籤 */
+        .admin-tabs { display: flex; border-bottom: 2px solid #eee; margin-bottom: 25px; }
+        .admin-tab { padding: 10px 20px; cursor: pointer; font-weight: 700; color: #999; transition: 0.3s; border-bottom: 3px solid transparent; }
+        .admin-tab.active { color: var(--idn-blue); border-bottom-color: var(--idn-blue); }
+
+        .form-row { display: flex; gap: 20px; margin-bottom: 20px; flex-wrap: wrap; }
+        .form-group { margin-bottom: 20px; flex: 1; min-width: 150px; }
+        .form-group label { display: block; margin-bottom: 10px; font-weight: 700; color: var(--idn-blue); }
+        .form-group input, .form-group select { width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 1rem; transition: all 0.3s; }
+        .form-group input:focus, .form-group select:focus { border-color: var(--idn-blue); }
+
+        /* --- 置頂按鈕 --- */
+        #back-to-top { position: fixed; bottom: 30px; right: 30px; background: var(--idn-blue); color: white; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.3); opacity: 0; pointer-events: none; transition: all 0.3s; z-index: 999; border: none; /* 移除邊框 */ }
+        #back-to-top.show { opacity: 1; pointer-events: auto; }
+        #back-to-top:hover { background: var(--idn-gold); transform: translateY(-5px); }
+
+        @media (max-width: 768px) {
+            nav { padding: 1rem; } .nav-links { display: none; }
+            .hero-title { font-size: 2.5rem; } .hero-subtitle { font-size: 1rem; }
+            .mvp-btn { bottom: 20px; left: 20px; padding: 8px 15px; font-size: 0.9rem; }
+            section { padding: 3rem 5%; } .video-grid-container { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loader">
+        <i class="fas fa-baseball-ball loader-icon"></i>
+        <p style="font-weight:bold; color:var(--idn-blue); font-size: 1.2rem; margin-top: 15px;">正在載入球隊資訊...</p>
+    </div>
+
+    <nav>
+        <div class="logo">IDN SOFTBALL</div>
+        <div class="nav-links">
+            <a href="#schedule">賽程資訊</a>
+            <a href="#videos">精彩影音</a>
+            <a href="#players">球員介紹</a>
+        </div>
+    </nav>
+
+    <header id="hero-section">
+        <div class="hero-content">
+            <div class="hero-title">印第安慢壘隊</div>
+            <div class="hero-subtitle">WE LOVE SOFTBALL</div>
+        </div>
+        <button class="mvp-btn" onclick="playMvpVideo()">
+            <i class="fas fa-play-circle"></i> WEEKLY MVP
+        </button>
+        <div id="hero-video-overlay">
+            <i class="fas fa-times close-hero-video" onclick="closeMvpVideo()"></i>
+            <iframe id="hero-video-frame" src="" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+        </div>
+    </header>
+
+    <section id="schedule">
+        <h2 class="section-title">賽程資訊</h2>
+        <div class="schedule-controls">
+            <button class="btn-main" onclick="openAdminModal('schedule')">
+                <i class="fas fa-edit"></i> 編輯賽程
+            </button>
+        </div>
+        <div class="schedule-table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th width="10%">日期</th>
+                        <th width="8%">集合</th>
+                        <th width="8%">開賽 1</th>
+                        <th width="8%">開賽 2</th>
+                        <th width="8%">開賽 3</th>
+                        <th width="8%">開賽 4</th>
+                        <th width="15%">球場</th>
+                        <th width="25%">備註</th>
+                    </tr>
+                </thead>
+                <tbody id="schedule-body"></tbody>
+            </table>
+        </div>
+        <div class="see-more-container">
+            <button class="btn-outline" id="btn-see-more" onclick="toggleScheduleView()">查看全部 / 歷史賽程</button>
+        </div>
+    </section>
+
+    <section id="videos" style="background: #111; color: white; position: relative; overflow: hidden; padding-top: 4rem; padding-bottom: 4rem;">
+        <div style="position: absolute; top:0; left:0; width:100%; height:100%; background: radial-gradient(circle at center, #2a2a2a 0%, #000 100%); opacity: 0.6; z-index: 0;"></div>
+        <div style="position: relative; z-index: 1;">
+            <h2 class="section-title" style="color:white; text-shadow: 0 2px 10px rgba(0,0,0,0.5);">
+                精彩影音
+                <a href="https://www.youtube.com/@idnsoftball" target="_blank" class="yt-link" title="前往 YouTube 頻道首頁"><i class="fab fa-youtube"></i></a>
+            </h2>
+            <div class="video-grid-container" id="video-container"></div>
+        </div>
+    </section>
+
+    <section id="players">
+        <h2 class="section-title">球員介紹</h2>
+        <div class="player-search-container">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" id="player-search" class="player-search-input" placeholder="搜尋球員姓名或背號...">
+        </div>
+        <div class="players-grid" id="players-container"></div>
+    </section>
+
+    <div id="admin-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('admin-modal')">&times;</span>
+            
+            <div id="password-step" style="text-align: center;">
+                <h3 style="margin-bottom:20px; color:var(--idn-blue);">管理員驗證</h3>
+                <div class="form-group" style="max-width: 300px; margin: 0 auto 20px;">
+                    <input type="password" id="admin-password" placeholder="請輸入管理密碼" style="text-align: center;">
+                </div>
+                <button class="btn-main" onclick="verifyPassword()" style="width:100%; max-width: 300px; margin: auto; justify-content: center;">驗證</button>
+            </div>
+
+            <div id="admin-panel" style="display:none;">
+                <div class="admin-tabs">
+                    <div class="admin-tab active" onclick="switchTab('schedule')">新增賽程</div>
+                    <div class="admin-tab" onclick="switchTab('mvp')">更換 MVP 影片</div>
+                </div>
+
+                <div id="tab-schedule" class="tab-content">
+                    <div class="form-row">
+                        <div class="form-group"><label>比賽日期 <span style="color:red">*</span></label><input type="date" id="m-date"></div>
+                        <div class="form-group"><label>集合時間</label><input type="time" id="m-meet"></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><label>球場 1 (主) <span style="color:red">*</span></label><input list="stadiums-list" id="m-loc1" placeholder="選擇或輸入..."></div>
+                        <div class="form-group"><label>球場 2 (副)</label><input list="stadiums-list" id="m-loc2" placeholder="選擇或輸入..."></div>
+                    </div>
+                    <datalist id="stadiums-list"></datalist>
+                    <div class="form-group"><label>備註</label><input type="text" id="m-remark"></div>
+                    <h4 class="form-section-title">開賽時間 (請直接輸入數字, 如 830, 1300)</h4>
+                    <div class="form-row">
+                        <div class="form-group"><label>開賽 1</label><input type="text" id="m-g1" placeholder="例如: 0830"></div>
+                        <div class="form-group"><label>開賽 2</label><input type="text" id="m-g2" placeholder="例如: 1000"></div>
+                        <div class="form-group"><label>開賽 3</label><input type="text" id="m-g3"></div>
+                        <div class="form-group"><label>開賽 4</label><input type="text" id="m-g4"></div>
+                    </div>
+                    <button class="btn-main" onclick="submitSchedule()" id="btn-submit-schedule" style="width:100%; margin-top:20px; justify-content: center;">確認新增賽程</button>
+                </div>
+
+                <div id="tab-mvp" class="tab-content" style="display:none;">
+                    <div class="form-group">
+                        <label>新的 YouTube 影片網址 (或 ID)</label>
+                        <input type="text" id="mvp-url-input" placeholder="例如: https://youtu.be/dQw4w9WgXcQ">
+                        <p style="font-size:0.85rem; color:#666; margin-top:5px;">請貼上完整 YouTube 網址或影片 ID。</p>
+                    </div>
+                    <button class="btn-main" onclick="submitMvpUrl()" id="btn-submit-mvp" style="width:100%; margin-top:20px; justify-content: center;">更新 MVP 影片</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="video-modal" class="modal">
+        <div class="modal-content" style="background:black; padding:0; width:90%; max-width:960px; aspect-ratio:16/9; box-shadow: 0 30px 60px rgba(0,0,0,0.6);">
+            <span class="close-modal" onclick="closeVideo()" style="color:white; right:-40px; top:-40px; font-size: 2.5rem; opacity: 0.8;">&times;</span>
+            <iframe id="yt-player" src="" style="width:100%; height:100%; border:none;" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+        </div>
+    </div>
+
+    <button id="back-to-top" onclick="scrollToTop()">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <script>
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbxAKNH-6eV-cwXZBqd_qyLe9MvCVQ6XELSfEzu8or7ds8niOAWRvxmNUnEfuls3Otd3dg/exec"; 
+        const CHANNEL_ID = "UC_T7bgZJQEKNUPYSBVEDUrg";
+        
+        let allSchedules = [];
+        let allPlayers = []; // 儲存所有球員資料供搜尋用
+        let isViewAll = false;
+        let currentMvpVideoId = ""; // 儲存當前 MVP 影片 ID
+
+        window.onload = async function() {
+            const loader = document.getElementById('loader');
+            try {
+                const res = await fetch(GAS_URL + "?action=get_all_data");
+                const data = await res.json();
+                if(data.error) throw new Error(data.error);
+
+                // 1. Hero & MVP
+                if(data.hero.bgUrl) document.getElementById('hero-section').style.backgroundImage = `url('${data.hero.bgUrl}')`;
+                if(data.hero.mvpUrl) currentMvpVideoId = extractYouTubeId(data.hero.mvpUrl);
+                
+                // 2. 賽程
+                allSchedules = data.schedules;
+                renderScheduleTable();
+                document.getElementById('stadiums-list').innerHTML = data.stadiums.map(l => `<option value="${l}">`).join('');
+
+                // 3. 球員 (儲存並渲染)
+                allPlayers = data.players;
+                renderPlayers(allPlayers);
+
+                // 4. YouTube
+                fetchYouTubeVideos();
+
+            } catch (e) {
+                console.error(e);
+                loader.innerHTML = '<p style="color:red;">讀取失敗，請重整網頁。</p>';
+            } finally {
+                setTimeout(() => { loader.style.opacity = '0'; setTimeout(() => { loader.style.display = 'none'; }, 500); }, 500);
+            }
+            
+            // 綁定球員搜尋事件
+            document.getElementById('player-search').addEventListener('input', filterPlayers);
+        };
+
+        // --- 功能：球員搜尋 ---
+        function filterPlayers(e) {
+            const term = e.target.value.toLowerCase();
+            const filtered = allPlayers.filter(p => 
+                p.name.toLowerCase().includes(term) || 
+                p.number.toString().includes(term)
+            );
+            renderPlayers(filtered);
+        }
+
+        function renderPlayers(players) {
+            const pContainer = document.getElementById('players-container');
+            if(players.length === 0) {
+                pContainer.innerHTML = '<p style="grid-column:1/-1; text-align:center; color:#888;">找不到符合的球員。</p>';
+                return;
+            }
+            pContainer.innerHTML = players.map(p => `
+                <div class="player-card">
+                    <div class="player-img-container">
+                        ${p.photo ? `<img src="${p.photo}" class="player-img" loading="lazy">` : `<i class="fas fa-user fa-4x" style="color:#ccc; opacity:0.5;"></i>`}
+                    </div>
+                    <div class="player-info">
+                        <h3 class="player-name-full">#${p.number} ${p.name}</h3>
+                        <span class="player-pos">${p.positions || '-'}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // --- 功能：Weekly MVP 播放 ---
+        function playMvpVideo() {
+            if(!currentMvpVideoId) { alert("目前沒有設定 MVP 影片。"); return; }
+            const overlay = document.getElementById('hero-video-overlay');
+            const iframe = document.getElementById('hero-video-frame');
+            // 使用 autoplay=1 自動播放，並在播放結束後嘗試關閉 (依賴 YouTube API，這裡先用簡單版)
+            iframe.src = `https://www.youtube.com/embed/${currentMvpVideoId}?autoplay=1&rel=0&controls=1`;
+            overlay.style.display = 'block';
+        }
+        function closeMvpVideo() {
+            const overlay = document.getElementById('hero-video-overlay');
+            const iframe = document.getElementById('hero-video-frame');
+            iframe.src = "";
+            overlay.style.display = 'none';
+        }
+
+        // --- 功能：置頂按鈕 ---
+        window.onscroll = function() {
+            const btn = document.getElementById('back-to-top');
+            if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
+                btn.classList.add('show');
+            } else {
+                btn.classList.remove('show');
+            }
+        };
+        function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
+
+        // --- 核心邏輯：渲染賽程表 (時間格式已由後端修正) ---
+        function renderScheduleTable() {
+            const tbody = document.getElementById('schedule-body');
+            const today = new Date(); today.setHours(0,0,0,0);
+            const twoMonthsLater = new Date(today); twoMonthsLater.setMonth(today.getMonth() + 2);
+            let displayList = isViewAll ? [...allSchedules] : allSchedules.filter(s => {
+                const sDate = new Date(s.date.replace(/\//g, '-')); return sDate >= today && sDate <= twoMonthsLater;
+            });
+            displayList.sort((a,b) => new Date(a.date) - new Date(b.date));
+
+            if(displayList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" style="padding:40px; color:#888; text-align:center;">近期無賽程 <br><span style="font-size:0.9rem;">(點擊下方按鈕查看歷史紀錄)</span></td></tr>`; return;
+            }
+            tbody.innerHTML = displayList.map(s => `
+                <tr>
+                    <td class="col-date">${s.date}</td>
+                    <td class="time-cell">${s.times.meet || '-'}</td>
+                    <td class="time-cell">${s.times.g1 || '-'}</td>
+                    <td class="time-cell">${s.times.g2 || '-'}</td>
+                    <td class="time-cell">${s.times.g3 || ''}</td>
+                    <td class="time-cell">${s.times.g4 || ''}</td>
+                    <td class="col-loc"><div>${s.location1}</div>${s.location2 ? `<div style="font-size:0.9rem; color:#666; border-top:1px dashed #ddd; margin-top:4px;">${s.location2}</div>` : ''}</td>
+                    <td class="remark-cell">${s.remark || ''}</td>
+                </tr>
+            `).join('');
+        }
+        function toggleScheduleView() { isViewAll = !isViewAll; document.getElementById('btn-see-more').innerText = isViewAll ? "只顯示近期賽程" : "查看全部 / 歷史賽程"; renderScheduleTable(); }
+
+        // --- 管理介面邏輯 ---
+        let currentAdminTab = 'schedule';
+        function openAdminModal(tab) {
+            document.getElementById('admin-modal').style.display = 'flex';
+            document.getElementById('password-step').style.display = 'block';
+            document.getElementById('admin-panel').style.display = 'none';
+            document.getElementById('admin-password').value = '';
+            if(tab) switchTab(tab);
+        }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; closeMvpVideo(); }
+        function verifyPassword() {
+            if (document.getElementById('admin-password').value === 'idnsoftball1991') {
+                document.getElementById('password-step').style.display = 'none';
+                document.getElementById('admin-panel').style.display = 'block';
+            } else { alert('密碼錯誤'); }
+        }
+        function switchTab(tab) {
+            currentAdminTab = tab;
+            document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+            document.querySelector(`.admin-tab[onclick="switchTab('${tab}')"]`).classList.add('active');
+            document.getElementById(`tab-${tab}`).style.display = 'block';
+        }
+
+        // 送出資料 (共用 fetch 邏輯)
+        async function sendToGas(action, payload, btnId, loadingText) {
+            const btn = document.getElementById(btnId);
+            const originalText = btn.innerText;
+            btn.innerText = loadingText; btn.disabled = true;
+            try {
+                await fetch(GAS_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: action, password: document.getElementById('admin-password').value, payload: payload })
+                });
+                alert('操作成功！頁面將重新整理。'); location.reload();
+            } catch(e) { alert('發生錯誤，請檢查網路。'); btn.innerText = originalText; btn.disabled = false; }
+        }
+
+        function submitSchedule() {
+            const payload = {
+                date: document.getElementById('m-date').value, location1: document.getElementById('m-loc1').value,
+                location2: document.getElementById('m-loc2').value, meet: document.getElementById('m-meet').value,
+                g1: document.getElementById('m-g1').value, g2: document.getElementById('m-g2').value,
+                g3: document.getElementById('m-g3').value, g4: document.getElementById('m-g4').value,
+                remark: document.getElementById('m-remark').value
+            };
+            if(!payload.date || !payload.location1) { alert('日期與主球場為必填！'); return; }
+            sendToGas("add_schedule", payload, "btn-submit-schedule", "正在儲存賽程...");
+        }
+
+        function submitMvpUrl() {
+            const url = document.getElementById('mvp-url-input').value;
+            if(!url) { alert('請輸入影片網址！'); return; }
+            sendToGas("update_mvp", { url: url }, "btn-submit-mvp", "正在更新 MVP 影片...");
+        }
+
+        // --- YouTube 輔助 ---
+        function extractYouTubeId(url) {
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : null;
+        }
+        async function fetchYouTubeVideos() { /* ... (維持原樣，省略以節省篇幅) ... */ 
+            const rssUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${CHANNEL_ID}`;
+            const proxyUrl = 'https://api.allorigins.win/get?url=' + encodeURIComponent(rssUrl);
+            try {
+                const res = await fetch(proxyUrl); const data = await res.json();
+                const parser = new DOMParser(); const xmlDoc = parser.parseFromString(data.contents, "text/xml");
+                const entries = xmlDoc.getElementsByTagName('entry');
+                let html = '';
+                for(let i=0; i < Math.min(entries.length, 7); i++) {
+                    const entry = entries[i];
+                    const vid = entry.getElementsByTagName('yt:videoId')[0].textContent;
+                    const title = entry.getElementsByTagName('title')[0].textContent;
+                    html += `<div class="video-card" onclick="playVideo('${vid}')"><div class="thumb-wrapper"><img src="https://img.youtube.com/vi/${vid}/maxresdefault.jpg" class="video-thumb" loading="lazy" onerror="this.src='https://img.youtube.com/vi/${vid}/hqdefault.jpg'"><div class="play-overlay"><i class="fas fa-play-circle play-icon-glow"></i></div></div><div class="video-title">${title}</div></div>`;
+                }
+                document.getElementById('video-container').innerHTML = html;
+            } catch(e) {}
+        }
+        function playVideo(id) { document.getElementById('yt-player').src = `https://www.youtube.com/embed/${id}?autoplay=1&rel=0`; document.getElementById('video-modal').style.display = 'flex'; }
+        function closeVideo() { document.getElementById('yt-player').src = ''; document.getElementById('video-modal').style.display = 'none'; }
+        window.onclick = function(event) { if (event.target.classList.contains('modal') && event.target.id !== 'hero-video-overlay') { event.target.style.display = "none"; closeVideo(); }}
+    </script>
+</body>
+</html>
