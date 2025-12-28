@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IDN SOFTBALL | 印第安慢壘隊</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --idn-blue: #00558F;
+            --idn-gold: #B4975A;
+            --idn-black: #222222;
+            --idn-gray: #f4f4f4;
+            --card-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Roboto', 'Noto Sans TC', sans-serif; }
+        body { background-color: var(--idn-gray); color: #333; line-height: 1.6; }
+
+        /* Navigation */
+        nav { background: var(--idn-blue); padding: 1rem 5%; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+        .logo { font-size: 1.5rem; font-weight: 800; color: var(--idn-gold); }
+        .nav-links a { color: white; text-decoration: none; margin-left: 20px; font-weight: 500; }
+        .nav-links a:hover { color: var(--idn-gold); }
+
+        /* Hero */
+        header { height: 60vh; background-color: #333; background-size: cover; background-position: center; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: white; position: relative; }
+        header::after { content: ''; position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,85,143, 0.4); }
+        .hero-content { position: relative; z-index: 1; }
+        .hero-title { font-size: 3.5rem; font-weight: 900; }
+        .hero-subtitle { font-size: 1.2rem; color: var(--idn-gold); margin-top: 10px; font-weight: bold; }
+
+        /* Sections */
+        section { padding: 4rem 5%; max-width: 1200px; margin: 0 auto; }
+        .section-title { text-align: center; font-size: 2rem; color: var(--idn-blue); margin-bottom: 2rem; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .section-title::after { display: none; } /* 移除原本的橫線 */
+        
+        /* YouTube Icon Link */
+        .yt-link { color: #FF0000; font-size: 1.8rem; transition: transform 0.2s; }
+        .yt-link:hover { transform: scale(1.1); }
+
+        /* Schedule Table */
+        .schedule-controls { display: flex; justify-content: flex-end; margin-bottom: 1rem; }
+        .btn-main { background: var(--idn-gold); color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .btn-main:hover { background: #9c824a; }
+        
+        .schedule-table-container { overflow-x: auto; background: white; border-radius: 8px; box-shadow: var(--card-shadow); margin-bottom: 1rem;}
+        table { width: 100%; border-collapse: collapse; min-width: 800px; font-size: 0.95rem; }
+        th, td { padding: 12px 10px; text-align: center; border-bottom: 1px solid #eee; }
+        th { background: var(--idn-blue); color: white; white-space: nowrap; }
+        .col-date { white-space: nowrap; font-weight: bold; color: var(--idn-blue); }
+        .col-loc { font-weight: bold; }
+        .time-cell { font-size: 0.9rem; color: #555; }
+        .time-label { font-size: 0.75rem; color: #999; display: block; margin-bottom: 2px;}
+
+        /* See More Button */
+        .see-more-container { text-align: center; margin-top: 10px; }
+        .btn-outline { background: transparent; border: 2px solid var(--idn-blue); color: var(--idn-blue); padding: 8px 20px; border-radius: 20px; cursor: pointer; font-weight: bold; }
+        .btn-outline:hover { background: var(--idn-blue); color: white; }
+
+        /* Videos */
+        .video-scroller { display: flex; overflow-x: auto; gap: 20px; padding-bottom: 20px; }
+        .video-card { min-width: 300px; background: black; border-radius: 8px; overflow: hidden; box-shadow: var(--card-shadow); cursor: pointer; position: relative; }
+        .video-thumb { width: 100%; aspect-ratio: 16/9; object-fit: cover; opacity: 0.8; }
+        .video-title { padding: 10px; color: white; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        /* Players */
+        .players-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 20px; }
+        .player-card { background: white; border-radius: 8px; overflow: hidden; box-shadow: var(--card-shadow); text-align: center; border-top: 4px solid var(--idn-gold); transition: transform 0.3s; }
+        .player-card:hover { transform: translateY(-5px); }
+        .player-img-container { width: 100%; height: 180px; background: #ddd; display: flex; align-items: center; justify-content: center; }
+        .player-img { width: 100%; height: 100%; object-fit: cover; }
+        .player-info { padding: 15px; }
+        .player-name-full { font-size: 1.1rem; font-weight: 700; color: var(--idn-blue); margin-bottom: 5px; }
+        .player-pos { font-size: 0.85rem; color: #666; background: #eee; padding: 2px 8px; border-radius: 10px; display: inline-block; }
+
+        /* Modal */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; align-items: center; justify-content: center; }
+        .modal-content { background: white; padding: 2rem; border-radius: 8px; width: 95%; max-width: 600px; max-height: 90vh; overflow-y: auto; position: relative; }
+        .close-modal { position: absolute; top: 10px; right: 15px; font-size: 1.5rem; cursor: pointer; }
+        .form-row { display: flex; gap: 10px; margin-bottom: 10px; }
+        .form-group { margin-bottom: 10px; flex: 1; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 0.9rem; }
+        .form-group input, .form-group select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+        
+        #loader { position: fixed; top:0; left:0; width:100%; height:100%; background:white; z-index:9999; display: flex; justify-content: center; align-items: center; flex-direction: column; }
+    </style>
+</head>
+<body>
+
+    <div id="loader">
+        <p style="font-weight:bold; color:var(--idn-blue);">正在載入最新資訊...</p>
+    </div>
+
+    <nav>
+        <div class="logo">IDN SOFTBALL</div>
+        <div class="nav-links">
+            <a href="#schedule">賽程</a>
+            <a href="#videos">影音</a>
+            <a href="#players">球員</a>
+        </div>
+    </nav>
+
+    <header id="hero-section">
+        <div class="hero-content">
+            <div class="hero-title">印第安慢壘隊</div>
+            <div class="hero-subtitle">WE LOVE SOFTBALL</div>
+        </div>
+    </header>
+
+    <section id="schedule">
+        <h2 class="section-title">
+            賽程資訊
+        </h2>
+        <div class="schedule-controls">
+            <button class="btn-main" onclick="openAdminModal()">
+                <i class="fas fa-edit"></i> 編輯賽程
+            </button>
+        </div>
+        <div class="schedule-table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th width="12%">日期</th>
+                        <th width="10%">集合</th>
+                        <th width="10%">開賽 1</th>
+                        <th width="10%">開賽 2</th>
+                        <th width="10%">開賽 3</th>
+                        <th width="10%">開賽 4</th>
+                        <th width="18%">球場</th>
+                        <th width="20%">備註</th>
+                    </tr>
+                </thead>
+                <tbody id="schedule-body">
+                    </tbody>
+            </table>
+        </div>
+        <div class="see-more-container">
+            <button class="btn-outline" id="btn-see-more" onclick="toggleScheduleView()">
+                查看全部 / 歷史賽程
+            </button>
+        </div>
+    </section>
+
+    <section id="videos" style="background: #111; color: white;">
+        <h2 class="section-title" style="color:white;">
+            精彩影音
+            <a href="https://www.youtube.com/@idnsoftball" target="_blank" class="yt-link" title="前往 YouTube 頻道">
+                <i class="fab fa-youtube"></i>
+            </a>
+        </h2>
+        <div class="video-scroller" id="video-container"></div>
+    </section>
+
+    <section id="players">
+        <h2 class="section-title">球員介紹</h2>
+        <div class="players-grid" id="players-container"></div>
+    </section>
+
+    <div id="admin-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('admin-modal')">&times;</span>
+            <h3 style="margin-bottom:20px; color:var(--idn-blue);">新增賽程</h3>
+            
+            <div id="password-step">
+                <div class="form-group">
+                    <label>管理密碼</label>
+                    <input type="password" id="admin-password" placeholder="密碼">
+                </div>
+                <button class="btn-main" onclick="verifyPassword()" style="width:100%">驗證</button>
+            </div>
+
+            <div id="form-step" style="display:none;">
+                <div class="form-group">
+                    <label>比賽日期</label>
+                    <input type="date" id="m-date">
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>球場 1 (主)</label>
+                        <input list="stadiums-list" id="m-loc1" placeholder="輸入球場1">
+                    </div>
+                    <div class="form-group">
+                        <label>球場 2 (副/選填)</label>
+                        <input list="stadiums-list" id="m-loc2" placeholder="輸入球場2">
+                    </div>
+                </div>
+                <datalist id="stadiums-list"></datalist>
+
+                <div class="form-row">
+                    <div class="form-group"><label>集合時間</label><input type="time" id="m-meet"></div>
+                    <div class="form-group"><label>備註</label><input type="text" id="m-remark"></div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group"><label>開賽 1</label><input type="time" id="m-g1"></div>
+                    <div class="form-group"><label>開賽 2</label><input type="time" id="m-g2"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>開賽 3 (選填)</label><input type="time" id="m-g3"></div>
+                    <div class="form-group"><label>開賽 4 (選填)</label><input type="time" id="m-g4"></div>
+                </div>
+
+                <button class="btn-main" onclick="submitSchedule()" id="submit-btn" style="width:100%; margin-top:10px;">新增賽程</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="video-modal" class="modal">
+        <div class="modal-content" style="background:black; padding:0; width:90%; max-width:800px; aspect-ratio:16/9;">
+            <span class="close-modal" onclick="closeVideo()" style="color:white; right:-30px; top:-30px;">&times;</span>
+            <iframe id="yt-player" src="" style="width:100%; height:100%; border:none;" allow="autoplay"></iframe>
+        </div>
+    </div>
+
+    <script>
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbxAKNH-6eV-cwXZBqd_qyLe9MvCVQ6XELSfEzu8or7ds8niOAWRvxmNUnEfuls3Otd3dg/exec"; 
+        const CHANNEL_ID = "UC_T7bgZJQEKNUPYSBVEDUrg";
+        
+        let allSchedules = [];
+        let isViewAll = false;
+
+        window.onload = async function() {
+            try {
+                const res = await fetch(GAS_URL + "?action=get_all_data");
+                const data = await res.json();
+                
+                if(data.hero.bgUrl) document.getElementById('hero-section').style.backgroundImage = `url('${data.hero.bgUrl}')`;
+                
+                // 處理賽程
+                allSchedules = data.schedules;
+                renderScheduleTable(); // 初始渲染 (部分顯示)
+
+                // 填充球場選單
+                document.getElementById('stadiums-list').innerHTML = data.stadiums.map(l => `<option value="${l}">`).join('');
+
+                // 處理球員 (#背號 姓名)
+                const pContainer = document.getElementById('players-container');
+                pContainer.innerHTML = data.players.map(p => `
+                    <div class="player-card">
+                        <div class="player-img-container">
+                            ${p.photo ? `<img src="${p.photo}" class="player-img">` : `<i class="fas fa-user fa-3x" style="color:#aaa;"></i>`}
+                        </div>
+                        <div class="player-info">
+                            <h3 class="player-name-full">#${p.number} ${p.name}</h3>
+                            <span class="player-pos">${p.positions || '-'}</span>
+                        </div>
+                    </div>
+                `).join('');
+
+                fetchYouTubeVideos();
+
+            } catch (e) {
+                console.error(e);
+            } finally {
+                document.getElementById('loader').style.display = 'none';
+            }
+        };
+
+        // --- 賽程邏輯 ---
+        function renderScheduleTable() {
+            const tbody = document.getElementById('schedule-body');
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            
+            // 兩個月後
+            const twoMonthsLater = new Date(today);
+            twoMonthsLater.setMonth(today.getMonth() + 2);
+
+            let displayList = allSchedules;
+
+            // 如果不是「查看全部」模式，則過濾
+            if (!isViewAll) {
+                displayList = allSchedules.filter(s => {
+                    const sDate = new Date(s.date.replace(/\//g, '-'));
+                    return sDate >= today && sDate <= twoMonthsLater;
+                });
+            }
+
+            // 排序 (日期近到遠)
+            displayList.sort((a,b) => new Date(a.date) - new Date(b.date));
+
+            if(displayList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" style="padding:20px;">近期無賽程 (點擊查看歷史賽程)</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = displayList.map(s => {
+                // 球場顯示邏輯：若有球場2，則換行顯示
+                let locDisplay = `<div>${s.location1}</div>`;
+                if(s.location2) locDisplay += `<div style="font-size:0.85rem; color:#666; border-top:1px dashed #ddd; margin-top:2px; padding-top:2px;">${s.location2}</div>`;
+                
+                return `
+                <tr>
+                    <td class="col-date">${s.date}</td>
+                    <td class="time-cell">${s.times.meet || '-'}</td>
+                    <td class="time-cell">${s.times.g1 || '-'}</td>
+                    <td class="time-cell">${s.times.g2 || '-'}</td>
+                    <td class="time-cell">${s.times.g3 || ''}</td>
+                    <td class="time-cell">${s.times.g4 || ''}</td>
+                    <td class="col-loc">${locDisplay}</td>
+                    <td style="font-size:0.9rem;">${s.remark || ''}</td>
+                </tr>
+            `}).join('');
+        }
+
+        function toggleScheduleView() {
+            isViewAll = !isViewAll;
+            const btn = document.getElementById('btn-see-more');
+            btn.innerText = isViewAll ? "只顯示近期賽程" : "查看全部 / 歷史賽程";
+            renderScheduleTable();
+        }
+
+        // --- 編輯功能 ---
+        function openAdminModal() {
+            document.getElementById('admin-modal').style.display = 'flex';
+            document.getElementById('password-step').style.display = 'block';
+            document.getElementById('form-step').style.display = 'none';
+            document.getElementById('admin-password').value = '';
+        }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+        
+        function verifyPassword() {
+            if (document.getElementById('admin-password').value === 'idnsoftball1991') {
+                document.getElementById('password-step').style.display = 'none';
+                document.getElementById('form-step').style.display = 'block';
+            } else { alert('密碼錯誤'); }
+        }
+
+        async function submitSchedule() {
+            const btn = document.getElementById('submit-btn');
+            
+            const payload = {
+                date: document.getElementById('m-date').value,
+                location1: document.getElementById('m-loc1').value,
+                location2: document.getElementById('m-loc2').value,
+                meet: document.getElementById('m-meet').value,
+                g1: document.getElementById('m-g1').value,
+                g2: document.getElementById('m-g2').value,
+                g3: document.getElementById('m-g3').value,
+                g4: document.getElementById('m-g4').value,
+                remark: document.getElementById('m-remark').value
+            };
+
+            if(!payload.date || !payload.location1) { alert('日期與主球場為必填'); return; }
+
+            btn.innerText = '儲存中...';
+            btn.disabled = true;
+
+            try {
+                await fetch(GAS_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: "add_schedule", password: document.getElementById('admin-password').value, payload: payload })
+                });
+                alert('成功！');
+                location.reload();
+            } catch(e) {
+                alert('錯誤');
+                btn.disabled = false;
+            }
+        }
+
+        // --- YouTube ---
+        async function fetchYouTubeVideos() {
+            try {
+                const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(`https://www.youtube.com/feeds/videos.xml?channel_id=${CHANNEL_ID}`)}`);
+                const data = await res.json();
+                if(data.items) {
+                    document.getElementById('video-container').innerHTML = data.items.map(item => {
+                        const vid = item.link.split('v=')[1];
+                        return `<div class="video-card" onclick="playVideo('${vid}')">
+                                    <img src="https://img.youtube.com/vi/${vid}/hqdefault.jpg" class="video-thumb">
+                                    <div class="video-title">${item.title}</div>
+                                </div>`;
+                    }).join('');
+                }
+            } catch(e){}
+        }
+        function playVideo(id) {
+            document.getElementById('yt-player').src = `https://www.youtube.com/embed/${id}?autoplay=1`;
+            document.getElementById('video-modal').style.display = 'flex';
+        }
+        function closeVideo() {
+            document.getElementById('yt-player').src = '';
+            document.getElementById('video-modal').style.display = 'none';
+        }
+        window.onclick = function(e) { if(e.target.classList.contains('modal')) { e.target.style.display="none"; closeVideo(); }}
+    </script>
+</body>
+</html>
