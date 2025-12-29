@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>IDN SOFTBALL | 印第安慢壘隊</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#00558F">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="icon-192.png">
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* --- CSS 變數 --- */
+        :root {
+            --idn-blue: #00558F; --idn-gold: #B4975A; --idn-black: #222222; --idn-gray: #f4f4f4;
+            --card-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Roboto', 'Noto Sans TC', sans-serif; -webkit-tap-highlight-color: transparent; outline: none; }
+        body { background-color: var(--idn-gray); color: #333; line-height: 1.5; overflow-x: hidden; }
+        html { scroll-behavior: smooth; }
+
+        /* --- UI Components --- */
+        #loader { position: fixed; top:0; left:0; width:100%; height:100%; background:white; z-index:9999; display: flex; justify-content: center; align-items: center; flex-direction: column; transition: opacity 0.5s; }
+        .loader-icon { font-size: 3rem; color: var(--idn-blue); animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { transform: scale(0.9); opacity: 0.7; } 50% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(0.9); opacity: 0.7; } }
+
+        nav { background: linear-gradient(to right, var(--idn-blue), #003366); padding: 1rem 5%; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+        .logo { font-size: 1.5rem; font-weight: 900; color: var(--idn-gold); letter-spacing: 1px; white-space: nowrap;}
+        
+        .nav-links { display: flex; gap: 20px; align-items: center; }
+        .nav-links a { color: rgba(255,255,255,0.9); text-decoration: none; font-weight: 500; font-size: 1rem; transition: color 0.3s; }
+        .nav-links a:hover { color: var(--idn-gold); }
+        .mobile-nav-text { display: none; } .desktop-nav-text { display: inline; }
+
+        #pwa-install-btn { display: none; background: var(--idn-gold); color: #000; border: none; padding: 5px 12px; border-radius: 20px; font-size: 0.9rem; font-weight: bold; cursor: pointer; align-items: center; gap: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.3); animation: bounceIn 1s; }
+        @keyframes bounceIn { from { transform: scale(0); } to { transform: scale(1); } }
+
+        header { height: 60vh; background-color: #1a1a1a; background-size: cover; background-position: center; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: white; position: relative; overflow: hidden; }
+        header::after { content: ''; position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.4); z-index: 0;}
+        .hero-content { position: relative; z-index: 1; padding: 0 20px;}
+        .hero-title { font-size: 3.5rem; font-weight: 900; text-shadow: 2px 2px 10px rgba(0,0,0,0.8); margin-bottom: 5px; line-height: 1.2; }
+        .hero-subtitle { font-size: 1.2rem; color: var(--idn-gold); font-weight: bold; letter-spacing: 2px; text-shadow: 1px 1px 5px rgba(0,0,0,0.8); }
+
+        .mvp-container { position: absolute; bottom: 20px; left: 20px; z-index: 2; display: flex; gap: 10px; }
+        .mvp-btn { background: rgba(0,0,0,0.6); border: 2px solid var(--idn-gold); color: var(--idn-gold); padding: 8px 16px; border-radius: 50px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; backdrop-filter: blur(5px); transition: 0.3s; font-size: 0.9rem; }
+        .mvp-edit-btn { background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.3); color: #ccc; width: 40px; border-radius: 50px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(5px); transition: 0.3s; font-size: 1rem; }
+        .mvp-btn:hover { background: var(--idn-gold); color: #000; } .mvp-edit-btn:hover { background: white; color: var(--idn-blue); }
+
+        #hero-video-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: #000; z-index: 10; display: none; }
+        #hero-video-frame { width: 100%; height: 100%; border: none; }
+        .close-hero-video { position: absolute; top: 15px; right: 15px; color: white; font-size: 2rem; cursor: pointer; z-index: 11; opacity: 0.8; }
+
+        section { padding: 4rem 5%; max-width: 1200px; margin: 0 auto; width: 100%; }
+        .section-title { text-align: center; font-size: 2rem; color: var(--idn-blue); margin-bottom: 2rem; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .yt-link { color: #FF0000; font-size: 2rem; }
+
+        .schedule-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 10px; }
+        .btn-main { background: linear-gradient(135deg, var(--idn-gold), #9c824a); color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        .btn-outline { background: white; border: 2px solid var(--idn-blue); color: var(--idn-blue); padding: 8px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.3s; font-size: 0.9rem; }
+        .btn-outline:hover { background: var(--idn-blue); color: white; }
+        
+        .schedule-table-container { background: white; border-radius: 8px; box-shadow: var(--card-shadow); margin-bottom: 1rem; border-top: 4px solid var(--idn-blue); width: 100%; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 800px; font-size: 0.95rem; }
+        th, td { padding: 12px 10px; text-align: center; border-bottom: 1px solid #eee; vertical-align: middle; }
+        th { background: #f0f4f8; color: var(--idn-blue); font-weight: 700; white-space: nowrap; }
+        .col-date { font-weight: 700; color: var(--idn-blue); white-space: nowrap;}
+        .col-loc { font-weight: 600; color: #444; }
+        .time-cell { font-family: 'Roboto Mono', monospace; color: #555; font-size: 0.9rem; }
+        .remark-cell { font-size: 0.9rem; color: #666; text-align: left; }
+        
+        .admin-actions { display: none; gap: 8px; justify-content: center; }
+        .btn-action-edit { color: var(--idn-blue); cursor: pointer; font-size: 1.1rem; transition:0.2s; background:none; border:none; }
+        .btn-action-del { color: #cc0000; cursor: pointer; font-size: 1.1rem; transition:0.2s; background:none; border:none; }
+        .btn-action-edit:hover, .btn-action-del:hover { transform: scale(1.2); }
+        body.is-admin .admin-actions { display: flex; }
+        .mobile-only { display: none !important; }
+
+        .video-grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+        .video-card { position: relative; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.3); cursor: pointer; background: #000; }
+        @media (min-width: 768px) { .video-card:first-child { grid-column: span 2; grid-row: span 2; } .video-card:first-child .video-title { font-size: 1.2rem; padding: 15px; } }
+        .thumb-wrapper { position: relative; width: 100%; padding-top: 56.25%; overflow: hidden; }
+        .video-thumb { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.9; transition: 0.3s; }
+        .video-card:hover .video-thumb { transform: scale(1.05); opacity: 0.6; }
+        .play-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; opacity: 0; transition: 0.3s; }
+        .video-card:hover .play-overlay { opacity: 1; }
+        .play-icon-glow { font-size: 3rem; color: white; text-shadow: 0 0 15px var(--idn-blue); }
+        .video-title { position: absolute; bottom: 0; left: 0; width: 100%; padding: 10px; color: white; font-size: 0.9rem; background: linear-gradient(to top, rgba(0,0,0,0.9), transparent); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        /* --- Player Section --- */
+        .player-search-container { max-width: 500px; margin: 0 auto 30px; position: relative; display: flex; gap:10px; }
+        .player-search-input { width: 100%; padding: 12px 20px 12px 45px; border: 2px solid #e0e0e0; border-radius: 30px; font-size: 1rem; transition: 0.3s; }
+        .player-search-input:focus { border-color: var(--idn-blue); }
+        .search-icon { position: absolute; top: 50%; left: 18px; transform: translateY(-50%); color: #aaa; }
+        .players-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 20px; }
+        .player-card { background: white; border-radius: 8px; overflow: hidden; box-shadow: var(--card-shadow); text-align: center; border-top: 4px solid var(--idn-gold); transition: 0.3s; position: relative; }
+        .player-card:hover { transform: translateY(-5px); }
+        .player-img-container { width: 100%; height: 200px; background: #e0e0e0; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .player-img { width: 100%; height: 100%; object-fit: cover; }
+        .player-info { padding: 15px; }
+        .player-name-full { font-size: 1.1rem; font-weight: 800; color: var(--idn-blue); margin-bottom: 5px; }
+        .player-pos { font-size: 0.85rem; color: white; background: var(--idn-blue); padding: 3px 10px; border-radius: 15px; display: inline-block; }
+        /* 球員卡上的管理按鈕 */
+        .player-admin-overlay { position: absolute; top: 10px; right: 10px; display: none; gap: 5px; background: rgba(255,255,255,0.8); border-radius: 4px; padding: 2px; }
+        body.is-admin .player-admin-overlay { display: flex; }
+
+        /* --- ✨ Weekly MVP 閃亮特效 --- */
+        @keyframes gold-shine {
+            0% { box-shadow: 0 0 5px #FFD700; border-color: #FFD700; }
+            50% { box-shadow: 0 0 20px #FFD700, 0 0 10px #FFA500; border-color: #FFF; }
+            100% { box-shadow: 0 0 5px #FFD700; border-color: #FFD700; }
+        }
+
+        .mvp-highlight-card {
+            border: 3px solid #FFD700 !important;
+            animation: gold-shine 1.5s infinite alternate;
+            position: relative;
+            transform: scale(1.02);
+            z-index: 10;
+        }
+
+        .mvp-badge-icon {
+            position: absolute;
+            top: -15px; left: -15px;
+            background: linear-gradient(135deg, #ff6b6b, #ff4757);
+            color: white;
+            font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif;
+            font-weight: 900; font-size: 0.9rem;
+            padding: 5px 10px; border-radius: 20px;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+            transform: rotate(-15deg); z-index: 20;
+            border: 2px solid white;
+            text-shadow: 1px 1px 0px rgba(0,0,0,0.2);
+        }
+        .mvp-badge-icon::before { content: '★ '; color: #FFD700; }
+
+        /* --- Modal --- */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(3px); }
+        .modal-content { background: white; padding: 2rem; border-radius: 10px; width: 95%; max-width: 600px; max-height: 90vh; overflow-y: auto; position: relative; }
+        .close-modal { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; cursor: pointer; color: #999; }
+        .form-row { display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; }
+        .form-group { margin-bottom: 15px; flex: 1; min-width: 140px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 700; color: var(--idn-blue); font-size: 0.9rem;}
+        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; }
+        
+        /* 圖片上傳預覽 */
+        .img-preview-box { width: 120px; height: 120px; background: #eee; border: 2px dashed #ccc; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-top: 10px; cursor: pointer; position: relative; }
+        .img-preview-box img { width: 100%; height: 100%; object-fit: cover; }
+        .img-preview-box span { color: #888; font-size: 0.8rem; text-align: center; padding: 5px; }
+        .file-input { position: absolute; width: 100%; height: 100%; top: 0; left: 0; opacity: 0; cursor: pointer; }
+
+        /* 守備位置 Checkbox */
+        .pos-checks { display: flex; flex-wrap: wrap; gap: 10px; }
+        .pos-check-item { display: flex; align-items: center; gap: 5px; background: #f9f9f9; padding: 5px 10px; border-radius: 4px; border: 1px solid #eee; font-size: 0.9rem; cursor: pointer; }
+        .pos-check-item:hover { background: #eef5fa; border-color: var(--idn-blue); }
+
+        #back-to-top { position: fixed; bottom: 20px; right: 20px; background: var(--idn-blue); color: white; width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; cursor: pointer; opacity: 0; pointer-events: none; transition: 0.3s; z-index: 999; border: none; }
+        #back-to-top.show { opacity: 1; pointer-events: auto; }
+
+        @media (max-width: 768px) {
+            nav { padding: 1rem; } 
+            .nav-links { display: flex; gap: 12px; } .desktop-nav-text { display: none; } .mobile-nav-text { display: inline; } .nav-links a { font-size: 0.9rem; }
+            #pwa-install-btn { padding: 4px 10px; font-size: 0.8rem; }
+            .hero-title { font-size: 2.2rem; } .hero-subtitle { font-size: 1rem; }
+            .mvp-container { bottom: 15px; left: 15px; } .mvp-btn { padding: 6px 12px; font-size: 0.8rem; } .mvp-edit-btn { width: 35px; height: 35px; }
+            section { padding: 2rem 5%; }
+            .schedule-table-container table, .schedule-table-container thead, .desktop-only { display: none !important; } .mobile-only { display: block !important; }
+            .schedule-mobile-list { display: flex; flex-direction: column; gap: 15px; width: 100%; }
+            .schedule-card { background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border: 1px solid #eee; overflow: hidden; width: 100%; position: relative; }
+            .mobile-admin-actions { position: absolute; top: 55px; right: 10px; background: rgba(255,255,255,0.9); padding: 5px; border-radius: 4px; z-index: 5; display: none; border: 1px solid #eee; }
+            body.is-admin .mobile-admin-actions { display: flex; gap: 10px; }
+            .card-header { background: var(--idn-blue); color: white; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; }
+            .card-date { font-weight: 800; font-size: 1.1rem; } .card-loc { font-size: 0.95rem; color: var(--idn-gold); font-weight: bold; margin-right: 30px; }
+            .card-body { padding: 12px 15px; } .card-row { display: flex; margin-bottom: 8px; align-items: center; font-size: 0.9rem; }
+            .card-label { color: #666; font-weight: bold; width: 70px; flex-shrink: 0; } .card-value { color: #333; font-weight: 500; }
+            .games-compact { display: flex; gap: 8px; flex-wrap: wrap; }
+            .game-tag { background: #f4f4f4; border: 1px solid #ddd; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; display: flex; gap: 5px; }
+            .game-tag span { color: #888; font-size: 0.75rem; } .game-tag strong { color: var(--idn-blue); font-family: 'Roboto Mono'; }
+            .card-remark { margin-top: 8px; padding-top: 8px; border-top: 1px dashed #eee; color: #666; font-size: 0.9rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loader">
+        <i class="fas fa-baseball-ball loader-icon"></i>
+        <p style="font-weight:bold; color:var(--idn-blue); font-size: 1.2rem; margin-top: 15px;">正在載入球隊資訊...</p>
+    </div>
+
+    <nav>
+        <div class="logo">IDN SOFTBALL</div>
+        <div class="nav-links">
+            <a href="#schedule"><span class="desktop-nav-text">賽程資訊</span><span class="mobile-nav-text">賽程</span></a>
+            <a href="#videos"><span class="desktop-nav-text">精彩影音</span><span class="mobile-nav-text">影音</span></a>
+            <a href="#players"><span class="desktop-nav-text">球隊成員</span><span class="mobile-nav-text">隊員</span></a>
+            <button id="pwa-install-btn" onclick="installPWA()"><i class="fas fa-download"></i> 下載 APP</button>
+        </div>
+    </nav>
+
+    <header id="hero-section">
+        <div class="hero-content">
+            <div class="hero-title">印第安慢壘隊</div>
+            <div class="hero-subtitle">WE LOVE SOFTBALL</div>
+        </div>
+        <div class="mvp-container">
+            <button class="mvp-btn" onclick="playMvpVideo()"><i class="fas fa-play-circle"></i> WEEKLY MVP</button>
+            <button class="mvp-edit-btn" onclick="openAdminModal('mvp')"><i class="fas fa-cog"></i></button>
+        </div>
+        <div id="hero-video-overlay">
+            <i class="fas fa-times close-hero-video" onclick="userCloseModal()"></i>
+            <iframe id="hero-video-frame" src="" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+        </div>
+    </header>
+
+    <section id="schedule">
+        <h2 class="section-title">賽程資訊</h2>
+        <div class="schedule-controls">
+            <button id="btn-see-more" class="btn-outline" onclick="toggleScheduleView()"><i class="fas fa-calendar-alt"></i> 查看後續所有賽程</button>
+            <button class="btn-main" onclick="openAdminModal('schedule')"><i class="fas fa-edit"></i> 編輯賽程</button>
+        </div>
+        <div class="schedule-table-container desktop-only">
+            <table>
+                <thead><tr><th width="10%">日期</th><th width="8%">集合</th><th width="8%">開賽 1</th><th width="8%">開賽 2</th><th width="8%">開賽 3</th><th width="8%">開賽 4</th><th width="15%">球場</th><th width="20%">備註</th><th width="8%">管理</th></tr></thead>
+                <tbody id="schedule-body-desktop"></tbody>
+            </table>
+        </div>
+        <div class="schedule-mobile-list mobile-only" id="schedule-body-mobile"></div>
+    </section>
+
+    <section id="videos" style="background: #111; color: white; position: relative; overflow: hidden; padding-top: 4rem; padding-bottom: 4rem;">
+        <div style="position: absolute; top:0; left:0; width:100%; height:100%; background: radial-gradient(circle at center, #2a2a2a 0%, #000 100%); opacity: 0.6; z-index: 0;"></div>
+        <div style="position: relative; z-index: 1;">
+            <h2 class="section-title" style="color:white; text-shadow: 0 2px 10px rgba(0,0,0,0.5);">精彩影音 <a href="https://www.youtube.com/@idnsoftball" target="_blank" class="yt-link" title="前往 YouTube 頻道首頁"><i class="fab fa-youtube"></i></a></h2>
+            <div class="video-grid-container" id="video-container"></div>
+        </div>
+    </section>
+
+    <section id="players">
+        <h2 class="section-title">球隊成員</h2>
+        <div class="player-search-container">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" id="player-search" class="player-search-input" placeholder="搜尋球員姓名或背號...">
+            <button class="btn-main" onclick="openAdminModal('player')" style="white-space:nowrap; display:none;" id="btn-add-player"><i class="fas fa-user-plus"></i> 新增</button>
+        </div>
+        <div class="players-grid" id="players-container"></div>
+    </section>
+
+    <div id="admin-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="userCloseModal()">&times;</span>
+            <div id="password-step" style="text-align: center;">
+                <h3 style="margin-bottom:20px; color:var(--idn-blue);">管理員驗證</h3>
+                <div class="form-group" style="max-width: 300px; margin: 0 auto 20px;"><input type="password" id="admin-password" placeholder="請輸入管理密碼" style="text-align: center;"></div>
+                <button class="btn-main" onclick="verifyPassword()" style="width:100%; max-width: 300px; margin: auto; justify-content: center;">驗證</button>
+            </div>
+            <div id="admin-panel" style="display:none;">
+                <div class="admin-tabs">
+                    <div class="admin-tab active" onclick="switchTab('schedule')">賽程管理</div>
+                    <div class="admin-tab" onclick="switchTab('player')">球員管理</div>
+                    <div class="admin-tab" onclick="switchTab('mvp')">更換 MVP</div>
+                </div>
+                
+                <div id="tab-schedule" class="tab-content">
+                    <input type="hidden" id="m-rowId" value="">
+                    <h3 id="form-title" style="color:var(--idn-blue); margin-bottom:15px; text-align:center;">新增賽程</h3>
+                    <div class="form-row"><div class="form-group"><label>比賽日期 <span style="color:red">*</span></label><input type="date" id="m-date"></div><div class="form-group"><label>集合時間</label><input type="time" id="m-meet"></div></div>
+                    <div class="form-row"><div class="form-group"><label>球場 1 (主) <span style="color:red">*</span></label><input list="stadiums-list" id="m-loc1" placeholder="選擇或輸入..."></div><div class="form-group"><label>球場 2 (副)</label><input list="stadiums-list" id="m-loc2" placeholder="選擇或輸入..."></div></div><datalist id="stadiums-list"></datalist>
+                    <div class="form-group"><label>備註</label><input type="text" id="m-remark"></div>
+                    <h4 style="margin: 15px 0 10px; color: var(--idn-blue); border-bottom: 2px solid #eee; padding-bottom: 5px; font-size:1rem;">開賽時間 (請直接輸入數字, 如 830, 1300)</h4>
+                    <div class="form-row"><div class="form-group"><label>開賽 1</label><input type="text" id="m-g1" placeholder="0830"></div><div class="form-group"><label>開賽 2</label><input type="text" id="m-g2" placeholder="1000"></div><div class="form-group"><label>開賽 3</label><input type="text" id="m-g3"></div><div class="form-group"><label>開賽 4</label><input type="text" id="m-g4"></div></div>
+                    <div style="display:flex; gap:10px; justify-content:center; margin-top:20px;">
+                        <button class="btn-outline" onclick="resetForm('schedule')" style="border-color:#aaa; color:#666;">清空</button>
+                        <button class="btn-main" onclick="submitSchedule()" id="btn-submit-schedule">儲存賽程</button>
+                    </div>
+                </div>
+
+                <div id="tab-player" class="tab-content" style="display:none;">
+                    <input type="hidden" id="p-rowId" value="">
+                    <h3 id="p-form-title" style="color:var(--idn-blue); margin-bottom:15px; text-align:center;">新增球員</h3>
+                    <div class="form-row">
+                        <div class="form-group"><label>球員姓名 <span style="color:red">*</span></label><input type="text" id="p-name"></div>
+                        <div class="form-group"><label>背號 <span style="color:red">*</span></label><input type="number" id="p-number"></div>
+                    </div>
+                    <div class="form-group">
+                        <label>球員照片 (點擊上傳，自動壓縮)</label>
+                        <div class="img-preview-box" onclick="document.getElementById('p-photo-file').click()">
+                            <img id="p-photo-preview" src="" style="display:none;">
+                            <span id="p-photo-placeholder"><i class="fas fa-camera fa-2x"></i><br>點此拍照或選圖</span>
+                            <input type="file" id="p-photo-file" class="file-input" accept="image/*" onchange="handleImageUpload(this)">
+                        </div>
+                        <input type="hidden" id="p-photo-url"> <input type="hidden" id="p-photo-base64"> </div>
+                    <div class="form-group">
+                        <label>守備位置</label>
+                        <div class="pos-checks" id="pos-checks-container">
+                            </div>
+                    </div>
+                    <div style="display:flex; gap:10px; justify-content:center; margin-top:20px;">
+                        <button class="btn-outline" onclick="resetForm('player')" style="border-color:#aaa; color:#666;">清空</button>
+                        <button class="btn-main" onclick="submitPlayer()" id="btn-submit-player">儲存球員</button>
+                    </div>
+                </div>
+
+                <div id="tab-mvp" class="tab-content" style="display:none;">
+                    <div class="form-group">
+                        <label>新的 YouTube 網址</label>
+                        <input type="text" id="mvp-url-input" placeholder="貼上完整 YouTube 網址...">
+                    </div>
+                    
+                    <div class="form-group" style="margin-top:15px; border-top: 1px dashed #eee; padding-top:15px;">
+                        <label style="color:#e67e22;">本週 MVP 背號 (設定閃亮特效)</label>
+                        <input type="number" id="mvp-number-input" placeholder="輸入背號，例如 18 (輸入 0 取消)">
+                        <small style="color:#888;">* 儲存後將同步更新至所有人的網頁</small>
+                    </div>
+
+                    <button class="btn-main" onclick="submitMvpData()" id="btn-submit-mvp" style="width:100%; margin-top:20px; justify-content: center;">
+                        更新 MVP 資訊
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="video-modal" class="modal"><div class="modal-content" style="background:black; padding:0; width:90%; max-width:960px; aspect-ratio:16/9; box-shadow: 0 30px 60px rgba(0,0,0,0.6);"><span class="close-modal" onclick="userCloseModal()" style="color:white; right:-40px; top:-40px; font-size: 2.5rem; opacity: 0.8;">&times;</span><iframe id="yt-player" src="" style="width:100%; height:100%; border:none;" allow="autoplay; encrypted-media" allowfullscreen></iframe></div></div>
+    <button id="back-to-top" onclick="scrollToTop()"><i class="fas fa-arrow-up"></i></button>
+
+    <script>
+      let deferredPrompt;
+      if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW failed', err)); }); }
+      window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; document.getElementById('pwa-install-btn').style.display = 'flex'; });
+      async function installPWA() { if (!deferredPrompt) return; deferredPrompt.prompt(); const { outcome } = await deferredPrompt.userChoice; deferredPrompt = null; document.getElementById('pwa-install-btn').style.display = 'none'; }
+    </script>
+
+    <script>
+        // 請確保這個 URL 是您最新部署的 GAS 網址
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbxAKNH-6eV-cwXZBqd_qyLe9MvCVQ6XELSfEzu8or7ds8niOAWRvxmNUnEfuls3Otd3dg/exec"; 
+        
+        let allSchedules = [], allPlayers = [];
+        let isViewAll = false, currentMvpEmbedUrl = "", isModalOpen = false;
+        let currentMvpNumber = ""; // ★ 新增全域變數存 MVP 背號
+        const savedPassword = localStorage.getItem('idn_admin_pwd');
+
+        window.onload = async function() {
+            const loader = document.getElementById('loader');
+            if(savedPassword) {
+                document.getElementById('admin-password').value = savedPassword;
+                document.body.classList.add('is-admin');
+                document.getElementById('btn-add-player').style.display = 'block';
+            }
+            try {
+                // 向 GAS 請求所有資料 (包含影片列表)
+                const res = await fetch(GAS_URL + "?action=get_all_data");
+                const data = await res.json();
+                if(data.error) throw new Error(data.error);
+
+                // 1. 設定 Hero 背景與 MVP
+                if(data.hero.bgUrl) document.getElementById('hero-section').style.backgroundImage = `url('${convertDriveLink(data.hero.bgUrl)}')`;
+                if(data.hero.mvpUrl) {
+                     currentMvpEmbedUrl = getYouTubeEmbedUrl(data.hero.mvpUrl);
+                     // 順便把網址填入 input，方便管理員下次修改
+                     document.getElementById('mvp-url-input').value = data.hero.mvpUrl;
+                }
+                
+                // ★ 接收後端傳來的 MVP 背號
+                if(data.hero.mvpNumber) {
+                    currentMvpNumber = data.hero.mvpNumber; // 存入全域變數
+                    document.getElementById('mvp-number-input').value = currentMvpNumber; // 填入 input
+                }
+                
+                // 2. 賽程表
+                allSchedules = data.schedules;
+                renderScheduleTable();
+                document.getElementById('stadiums-list').innerHTML = data.stadiums.map(l => `<option value="${l}">`).join('');
+
+                // 3. 球員
+                allPlayers = data.players;
+                posHeaders = data.posHeaders || [];
+                renderPosCheckboxes();
+                renderPlayers(allPlayers); // 這裡會用到 currentMvpNumber
+
+                // 4. 精彩影音 (直接使用後端回傳的資料)
+                if (data.videos && data.videos.length > 0) {
+                    renderVideoSection(data.videos);
+                } else {
+                    document.getElementById('video-container').innerHTML = '<p style="color:white; text-align:center; width:100%;">暫無影片資料</p>';
+                }
+
+            } catch (e) {
+                console.error("載入失敗:", e);
+                loader.innerHTML = '<p style="color:red;">讀取失敗，請重整網頁。<br><small>'+e.message+'</small></p>';
+            } finally {
+                setTimeout(() => { loader.style.opacity = '0'; setTimeout(() => { loader.style.display = 'none'; }, 500); }, 500);
+            }
+            document.getElementById('player-search').addEventListener('input', filterPlayers);
+            window.addEventListener('popstate', function(event) { closeAllModals(); });
+        };
+
+        // --- 渲染影片列表 ---
+        function renderVideoSection(videos) {
+            let html = '';
+            videos.forEach(v => {
+                const thumb = `https://img.youtube.com/vi/${v.id}/mqdefault.jpg`;
+                html += `
+                <div class="video-card" onclick="playVideo('${v.id}')">
+                    <div class="thumb-wrapper">
+                        <img src="${thumb}" class="video-thumb" loading="lazy">
+                        <div class="play-overlay"><i class="fas fa-play-circle play-icon-glow"></i></div>
+                    </div>
+                    <div class="video-title">${v.title}</div>
+                </div>`;
+            });
+            document.getElementById('video-container').innerHTML = html;
+        }
+
+        // --- 其他功能 ---
+        function getYouTubeEmbedUrl(url) {
+            if (!url) return null;
+            if (url.includes("/clip/")) {
+                const m = url.match(/\/clip\/([^/?]+)/);
+                if (m) return `https://www.youtube-nocookie.com/embed/clip/${m[1]}?autoplay=1&rel=0&controls=1`;
+            }
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+            const match = url.match(regExp);
+            if (match && match[2].length === 11) return `https://www.youtube.com/embed/${match[2]}?autoplay=1&rel=0&controls=1`;
+            return null;
+        }
+        function playVideo(id) { document.getElementById('yt-player').src = `https://www.youtube.com/embed/${id}?autoplay=1&rel=0`; openModalCommon('video-modal'); }
+        function playMvpVideo() {
+            if(!currentMvpEmbedUrl) { alert("目前沒有設定 MVP 影片，或影片格式不支援。"); return; }
+            const iframe = document.getElementById('hero-video-frame');
+            iframe.src = currentMvpEmbedUrl;
+            openModalCommon('hero-video-overlay');
+        }
+        
+        function convertDriveLink(url) {
+            if (!url) return "";
+            if (url.includes("github.com") || url.includes("raw.githubusercontent.com")) return url;
+            if (url.includes("drive.google.com")) {
+                let id = "";
+                const parts = url.match(/[-\w]{25,}/);
+                if (parts) id = parts[0];
+                if (id) return `https://drive.google.com/thumbnail?id=${id}&sz=w1200`;
+            }
+            return url;
+        }
+        function handleImageUpload(input) {
+            const file = input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.src = e.target.result;
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    const MAX_WIDTH = 800;
+                    let width = img.width; let height = img.height;
+                    if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+                    canvas.width = width; canvas.height = height;
+                    ctx.drawImage(img, 0, 0, width, height);
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+                    document.getElementById('p-photo-preview').src = dataUrl;
+                    document.getElementById('p-photo-preview').style.display = 'block';
+                    document.getElementById('p-photo-placeholder').style.display = 'none';
+                    document.getElementById('p-photo-base64').value = dataUrl;
+                };
+            };
+            reader.readAsDataURL(file);
+        }
+        function renderPosCheckboxes() {
+            const container = document.getElementById('pos-checks-container');
+            if(posHeaders.length > 0) { container.innerHTML = posHeaders.map(pos => `<label class="pos-check-item"><input type="checkbox" value="${pos}" class="pos-checkbox"> ${pos}</label>`).join(''); }
+            else { container.innerHTML = '<span style="color:#aaa; font-size:0.8rem;">無守備位置資料</span>'; }
+        }
+        function filterPlayers(e) { const term = e.target.value.toLowerCase(); const filtered = allPlayers.filter(p => p.name.toLowerCase().includes(term) || p.number.toString().includes(term)); renderPlayers(filtered); }
+        
+        // ★ 修改：渲染球員列表 (加入 MVP 特效)
+        function renderPlayers(players) {
+            const pContainer = document.getElementById('players-container');
+            if(players.length === 0) { pContainer.innerHTML = '<p style="grid-column:1/-1; text-align:center; color:#888;">無球員資料</p>'; return; }
+            
+            pContainer.innerHTML = players.map(p => {
+                const photoUrl = convertDriveLink(p.photo);
+                const actionBtns = `<div class="player-admin-overlay"><button class="btn-action-edit" onclick="editPlayer(${p.rowId})" style="font-size:0.9rem; padding:2px 5px;"><i class="fas fa-edit"></i></button><button class="btn-action-del" onclick="deletePlayer(${p.rowId})" style="font-size:0.9rem; padding:2px 5px;"><i class="fas fa-trash-alt"></i></button></div>`;
+                
+                // ★ 判斷是否為 MVP (背號吻合)
+                let cardClass = "player-card";
+                let badgeHtml = "";
+                
+                // 注意：HTML 屬性通常是字串，所以用 == 比較安全
+                if (currentMvpNumber && p.number == currentMvpNumber) {
+                    cardClass += " mvp-highlight-card"; // 加入閃亮 CSS class
+                    badgeHtml = `<div class="mvp-badge-icon">Weekly MVP</div>`; // 加入可愛貼紙
+                }
+
+                return `<div class="${cardClass}">${badgeHtml}${actionBtns}<div class="player-img-container">${photoUrl ? `<img src="${photoUrl}" class="player-img" loading="lazy">` : `<i class="fas fa-user fa-4x" style="color:#ccc; opacity:0.5;"></i>`}</div><div class="player-info"><h3 class="player-name-full">#${p.number} ${p.name}</h3><span class="player-pos">${p.positions || '-'}</span></div></div>`;
+            }).join('');
+        }
+
+        function openModalCommon(modalId) { document.getElementById(modalId).style.display = 'flex'; history.pushState({modal: true}, null, location.href); isModalOpen = true; }
+        function closeAllModals() { document.querySelectorAll('.modal').forEach(m => m.style.display='none'); document.getElementById('hero-video-overlay').style.display='none'; document.getElementById('hero-video-frame').src=""; document.getElementById('yt-player').src=""; isModalOpen = false; }
+        function userCloseModal() { if (isModalOpen) history.back(); }
+        function openAdminModal(tab) { resetForm(tab); openAdminModalAuth(tab); }
+        
+        // --- 🔒 安全驗證版 ---
+        async function openAdminModalAuth(tab) {
+            openModalCommon('admin-modal');
+            const storedPwd = localStorage.getItem('idn_admin_pwd');
+            let isValid = false;
+            if (storedPwd) {
+                const salt = "IDN_TEAM_2025_SECURE_SALT_!@#";
+                const salted = storedPwd + salt;
+                const msgBuffer = new TextEncoder().encode(salted);
+                const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+                const hashArray = Array.from(new Uint8Array(hashBuffer));
+                const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+                const correctHash = "7f72436855140d3989c72a84976767f4749f9d78401344445657849e7939102a";
+                if (hashHex === correctHash) isValid = true;
+            }
+            if (isValid) { 
+                document.getElementById('password-step').style.display = 'none'; 
+                document.getElementById('admin-panel').style.display = 'block'; 
+                document.body.classList.add('is-admin'); 
+                document.getElementById('btn-add-player').style.display = 'block'; 
+            } else { 
+                document.getElementById('password-step').style.display = 'block'; 
+                document.getElementById('admin-panel').style.display = 'none'; 
+            }
+            document.getElementById('admin-password').value = '';
+            if(tab) switchTab(tab);
+        }
+
+        async function verifyPassword() {
+            const inputPwd = document.getElementById('admin-password').value;
+            const salt = "IDN_TEAM_2025_SECURE_SALT_!@#";
+            const salted = inputPwd + salt;
+            const msgBuffer = new TextEncoder().encode(salted);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            const correctHash = "7f72436855140d3989c72a84976767f4749f9d78401344445657849e7939102a";
+
+            if (hashHex === correctHash) {
+                localStorage.setItem('idn_admin_pwd', inputPwd); 
+                document.getElementById('password-step').style.display = 'none'; 
+                document.getElementById('admin-panel').style.display = 'block'; 
+                document.body.classList.add('is-admin'); 
+                document.getElementById('btn-add-player').style.display = 'block'; 
+                renderScheduleTable(); 
+                renderPlayers(allPlayers);
+                alert("登入成功！");
+            } else { 
+                alert('密碼錯誤'); 
+            }
+        }
+        function switchTab(tab) {
+            document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active')); document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none'); document.querySelector(`.admin-tab[onclick="switchTab('${tab}')"]`).classList.add('active'); document.getElementById(`tab-${tab}`).style.display = 'block';
+        }
+        function resetForm(tab) {
+            if(tab === 'schedule') {
+                document.getElementById('m-rowId').value = ""; document.getElementById('form-title').innerText = '新增賽程'; document.getElementById('btn-submit-schedule').innerText = '確認儲存';
+                document.getElementById('m-date').value = ""; document.getElementById('m-meet').value = ""; document.getElementById('m-g1').value = ""; document.getElementById('m-g2').value = ""; document.getElementById('m-g3').value = ""; document.getElementById('m-g4').value = ""; document.getElementById('m-loc1').value = ""; document.getElementById('m-loc2').value = ""; document.getElementById('m-remark').value = "";
+            } else if (tab === 'player') {
+                document.getElementById('p-rowId').value = ""; document.getElementById('p-form-title').innerText = '新增球員'; document.getElementById('btn-submit-player').innerText = '儲存球員';
+                document.getElementById('p-name').value = ""; document.getElementById('p-number').value = ""; document.getElementById('p-photo-url').value = ""; document.getElementById('p-photo-base64').value = "";
+                document.getElementById('p-photo-preview').style.display = 'none'; document.getElementById('p-photo-placeholder').style.display = 'block';
+                document.querySelectorAll('.pos-checkbox').forEach(cb => cb.checked = false);
+            }
+        }
+        async function sendToGas(action, payload, btnId, loadingText) {
+            const pwd = localStorage.getItem('idn_admin_pwd');
+            let btn = btnId ? document.getElementById(btnId) : null;
+            let originalText = btn ? btn.innerText : "";
+            if(btn) { btn.innerText = loadingText; btn.disabled = true; }
+            try {
+                await fetch(GAS_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: action, password: pwd, payload: payload }) });
+                alert('操作成功！頁面將重新整理。'); location.reload();
+            } catch(e) { alert('發生錯誤'); if(btn) { btn.innerText = originalText; btn.disabled = false; } }
+        }
+        function renderScheduleTable() { renderDesktopTable(); renderMobileList(); }
+        function renderDesktopTable() {
+            const tbody = document.getElementById('schedule-body-desktop');
+            const list = filterScheduleList();
+            if(list.length === 0) { tbody.innerHTML = `<tr><td colspan="9" style="padding:40px; color:#888;">近期無賽程</td></tr>`; return; }
+            tbody.innerHTML = list.map(s => {
+                const t = s.times;
+                const actionBtns = `<div class="admin-actions"><button class="btn-action-edit" onclick="editSchedule(${s.rowId})"><i class="fas fa-edit"></i></button><button class="btn-action-del" onclick="deleteSchedule(${s.rowId})"><i class="fas fa-trash-alt"></i></button></div>`;
+                return `<tr><td class="col-date">${s.date}</td><td class="time-cell">${t.meet||'-'}</td><td class="time-cell">${t.g1||'-'}</td><td class="time-cell">${t.g2||'-'}</td><td class="time-cell">${t.g3||''}</td><td class="time-cell">${t.g4||''}</td><td class="col-loc"><div>${s.location1}</div>${s.location2?`<div style="font-size:0.9rem; color:#666; margin-top:4px;">${s.location2}</div>`:''}</td><td class="remark-cell">${s.remark||''}</td><td>${actionBtns}</td></tr>`;
+            }).join('');
+        }
+        function renderMobileList() {
+            const container = document.getElementById('schedule-body-mobile');
+            const list = filterScheduleList();
+            if(list.length === 0) { container.innerHTML = `<p style="text-align:center; padding:20px; color:#888;">近期無賽程</p>`; return; }
+            container.innerHTML = list.map(s => {
+                const t = s.times;
+                let gamesHtml = '';
+                if(t.g1) gamesHtml += `<div class="game-tag"><span>G1</span><strong>${t.g1}</strong></div>`;
+                if(t.g2) gamesHtml += `<div class="game-tag"><span>G2</span><strong>${t.g2}</strong></div>`;
+                if(t.g3) gamesHtml += `<div class="game-tag"><span>G3</span><strong>${t.g3}</strong></div>`;
+                if(t.g4) gamesHtml += `<div class="game-tag"><span>G4</span><strong>${t.g4}</strong></div>`;
+                if(!gamesHtml) gamesHtml = '<span style="color:#aaa; font-size:0.8rem;">無詳細時間</span>';
+                let locText = s.location1 + (s.location2 ? ` / ${s.location2}` : '');
+                const actionBtns = `<div class="mobile-admin-actions admin-actions"><button class="btn-action-edit" onclick="editSchedule(${s.rowId})"><i class="fas fa-edit"></i></button><button class="btn-action-del" onclick="deleteSchedule(${s.rowId})"><i class="fas fa-trash-alt"></i></button></div>`;
+                return `<div class="schedule-card">${actionBtns}<div class="card-header"><div class="card-date">${s.date}</div><div class="card-loc"><i class="fas fa-map-marker-alt"></i> ${locText}</div></div><div class="card-body"><div class="card-row"><div class="card-label">集合</div><div class="card-value">${t.meet||'-'}</div></div><div class="card-row" style="align-items:flex-start;"><div class="card-label">開賽</div><div class="games-compact">${gamesHtml}</div></div>${s.remark?`<div class="card-remark"><i class="fas fa-sticky-note"></i> ${s.remark}</div>`:''}</div></div>`;
+            }).join('');
+        }
+        function filterScheduleList() {
+            const today = new Date(); today.setHours(0,0,0,0);
+            const twoMonthsLater = new Date(today); twoMonthsLater.setMonth(today.getMonth()+2);
+            const oneYearLater = new Date(today); oneYearLater.setFullYear(today.getFullYear()+1);
+            let displayList = allSchedules.filter(s => {
+                const sDate = new Date(s.date.replace(/\//g,'-'));
+                return isViewAll ? (sDate >= today && sDate <= oneYearLater) : (sDate >= today && sDate <= twoMonthsLater);
+            });
+            return displayList.sort((a,b)=>new Date(a.date)-new Date(b.date));
+        }
+        function toggleScheduleView() { isViewAll = !isViewAll; document.getElementById('btn-see-more').innerHTML = isViewAll ? '<i class="fas fa-compress-arrows-alt"></i> 只顯示近期賽程' : '<i class="fas fa-calendar-alt"></i> 查看後續所有賽程'; renderScheduleTable(); }
+        window.editSchedule = function(rowId) {
+            const item = allSchedules.find(s=>s.rowId==rowId); if(!item)return;
+            openAdminModalAuth('schedule');
+            document.getElementById('m-rowId').value=rowId; document.getElementById('form-title').innerText='修改賽程'; document.getElementById('btn-submit-schedule').innerText='更新資料';
+            document.getElementById('m-date').value=item.date.replace(/\//g,'-'); document.getElementById('m-meet').value=item.times.meet;
+            document.getElementById('m-g1').value=item.times.g1?item.times.g1.replace(':',''):''; document.getElementById('m-g2').value=item.times.g2?item.times.g2.replace(':',''):''; document.getElementById('m-g3').value=item.times.g3?item.times.g3.replace(':',''):''; document.getElementById('m-g4').value=item.times.g4?item.times.g4.replace(':',''):'';
+            document.getElementById('m-loc1').value=item.location1; document.getElementById('m-loc2').value=item.location2; document.getElementById('m-remark').value=item.remark;
+        };
+        window.deleteSchedule = function(rowId) { if(confirm('確定刪除？')) sendToGas('delete_schedule', {rowId:rowId}, null, '刪除中...'); };
+        function submitSchedule() {
+            const rowId = document.getElementById('m-rowId').value;
+            const payload = { rowId:rowId, date:document.getElementById('m-date').value, location1:document.getElementById('m-loc1').value, location2:document.getElementById('m-loc2').value, meet:document.getElementById('m-meet').value, g1:document.getElementById('m-g1').value, g2:document.getElementById('m-g2').value, g3:document.getElementById('m-g3').value, g4:document.getElementById('m-g4').value, remark:document.getElementById('m-remark').value };
+            if(!payload.date || !payload.location1) { alert('日期與主球場必填'); return; }
+            sendToGas(rowId?'update_schedule':'add_schedule', payload, "btn-submit-schedule", rowId?"更新中...":"儲存中...");
+        }
+        
+        // ★ 修改：更新 MVP (包含網址與背號)
+        function submitMvpData() {
+            const url = document.getElementById('mvp-url-input').value; 
+            const num = document.getElementById('mvp-number-input').value;
+            
+            // 只要其中一個有值就可以送出
+            const payload = { url: url, number: num };
+            sendToGas("update_mvp", payload, "btn-submit-mvp", "更新中...");
+        }
+
+        function submitPlayer() {
+            const rowId = document.getElementById('p-rowId').value;
+            const name = document.getElementById('p-name').value;
+            const number = document.getElementById('p-number').value;
+            if(!name || !number) { alert('姓名與背號為必填！'); return; }
+            let selectedPos = []; document.querySelectorAll('.pos-checkbox:checked').forEach(cb => selectedPos.push(cb.value));
+            const payload = { rowId: rowId, name: name, number: number, photoUrl: document.getElementById('p-photo-url').value, newImageBase64: document.getElementById('p-photo-base64').value, positions: selectedPos };
+            sendToGas("save_player", payload, "btn-submit-player", rowId ? "正在更新..." : "正在儲存...");
+        }
+        window.onclick = function(e) { if(e.target.classList.contains('modal')) userCloseModal(); }
+    </script>
+</body>
+</html>
