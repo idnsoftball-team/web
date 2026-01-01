@@ -1,4 +1,4 @@
-const CACHE_NAME = 'idn-softball-v24';
+const CACHE_NAME = 'idn-softball-v25';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
