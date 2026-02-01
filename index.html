@@ -432,6 +432,169 @@
         .game-actions .btn-outline:hover { background: rgba(180,151,90,0.15); border-color: rgba(180,151,90,0.55); }
         .game-actions .btn-main { box-shadow: 0 12px 24px rgba(0,0,0,0.25); }
 
+
+        /* games accordion (預設收合) */
+        .games-toggle{
+            width: calc(100% - 28px);
+            max-width: 1100px;
+            margin: 0 auto;
+            border: 1px solid rgba(255,255,255,0.16);
+            background: linear-gradient(135deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.06) 45%, rgba(0,0,0,0.18) 100%);
+            border-radius: 16px;
+            padding: 16px 18px;
+            display:flex;
+            align-items:center;
+            justify-content: space-between;
+            gap: 14px;
+            cursor:pointer;
+            text-align:left;
+            color: white;
+            box-shadow: 0 18px 42px rgba(0,0,0,0.28);
+            backdrop-filter: blur(8px);
+            position: relative;
+            overflow:hidden;
+        }
+        .games-toggle:before{
+            content:"";
+            position:absolute; inset:-60px -80px auto auto;
+            width: 220px; height: 220px;
+            background: radial-gradient(circle, rgba(180,151,90,0.28) 0%, rgba(0,0,0,0) 60%);
+            transform: rotate(15deg);
+            pointer-events:none;
+        }
+        .games-toggle:hover{ border-color: rgba(180,151,90,0.45); }
+        .games-toggle-left{ display:flex; flex-direction:column; gap:6px; min-width: 0; }
+        .games-toggle-title{
+            font-size: 1.35rem;
+            font-weight: 1000;
+            letter-spacing: 0.6px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.35);
+            line-height: 1.15;
+        }
+        .games-toggle-sub{ opacity:0.9; font-size: 0.95rem; white-space: nowrap; overflow:hidden; text-overflow: ellipsis; }
+        .games-toggle-right{ display:flex; align-items:center; gap: 12px; flex-shrink: 0; }
+        .games-toggle-badges{ display:flex; gap:8px; flex-wrap: wrap; justify-content:flex-end; }
+        .games-badge{
+            font-size: 0.82rem;
+            font-weight: 900;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: rgba(180,151,90,0.22);
+            border: 1px solid rgba(180,151,90,0.45);
+            letter-spacing: 0.3px;
+        }
+        .games-badge.ghost{
+            background: rgba(0,85,143,0.16);
+            border-color: rgba(0,85,143,0.36);
+        }
+        .games-chevron{ display:flex; align-items:center; justify-content:center; opacity:0.9; }
+        .games-chevron svg{ transition: transform 0.25s ease; }
+        #games-toggle[aria-expanded="true"] .games-chevron svg{ transform: rotate(180deg); }
+
+        .games-panel{
+            max-width: 1100px;
+            margin: 0 auto;
+            max-height: 0;
+            opacity: 0;
+            transform: translateY(-8px);
+            overflow:hidden;
+            pointer-events:none;
+            transition: max-height 0.35s ease, opacity 0.25s ease, transform 0.25s ease;
+        }
+        .games-panel.open{
+            max-height: 2600px;
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events:auto;
+            margin-top: 18px;
+        }
+
+        /* card micro-interactions */
+        .game-card{ transition: transform 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease; }
+        .game-card:hover{
+            transform: translateY(-4px);
+            border-color: rgba(180,151,90,0.45);
+            box-shadow: 0 22px 46px rgba(0,0,0,0.35);
+        }
+
+        /* batter icon */
+        .gi-svg{
+            width: 18px; height: 18px;
+            stroke: rgba(255,255,255,0.95);
+            stroke-width: 4;
+            fill: none;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        /* batting (parabolic ball) */
+        .bt-stage{
+            margin-top: 12px;
+            height: 240px;
+            border-radius: 14px;
+            border: 1px solid rgba(0,0,0,0.18);
+            background: radial-gradient(circle at 20% 70%, rgba(180,151,90,0.18) 0%, rgba(0,0,0,0) 50%),
+                        linear-gradient(135deg, #ffffff 0%, #f4f6f9 100%);
+            position: relative;
+            overflow:hidden;
+        }
+        .bt-arc{ position:absolute; inset: 0; pointer-events:none; opacity: 0.55; }
+        .bt-arc path{ stroke: rgba(0,0,0,0.22); stroke-width: 2.2; stroke-dasharray: 6 10; fill:none; }
+        .bt-batter{
+            position:absolute; left: 16px; bottom: 10px;
+            width: 96px; height: 140px;
+            opacity: 0.95;
+        }
+        .bt-batter svg{ width:100%; height:100%; }
+        .bt-zone{
+            position:absolute;
+            left: 38%;
+            top: 44%;
+            width: 96px;
+            height: 126px;
+            border-radius: 12px;
+            border: 2.8px dashed rgba(0,0,0,0.28);
+            background: rgba(255,255,255,0.35);
+            box-shadow: inset 0 0 0 2px rgba(255,255,255,0.55);
+        }
+        .bt-zone.hot{
+            border-color: rgba(180,151,90,0.95);
+            box-shadow: 0 0 0 4px rgba(180,151,90,0.18), 0 0 26px rgba(180,151,90,0.45), inset 0 0 0 2px rgba(255,255,255,0.65);
+            animation: btHotPulse 0.75s ease-in-out infinite;
+        }
+        @keyframes btHotPulse{
+            0%,100%{ transform: scale(1); }
+            50%{ transform: scale(1.02); }
+        }
+        .bt-ball{
+            position:absolute;
+            width: 16px; height: 16px;
+            border-radius: 999px;
+            background: radial-gradient(circle at 30% 30%, #ffffff 0%, #f0f0f0 60%, #dadada 100%);
+            box-shadow: 0 12px 18px rgba(0,0,0,0.18);
+            transform: translate(-999px, -999px);
+        }
+        .bt-ball:before{
+            content:"";
+            position:absolute; inset: 3px 4px 3px 4px;
+            border-radius: 999px;
+            border-left: 2px solid rgba(200,0,0,0.55);
+            border-right: 2px solid rgba(200,0,0,0.55);
+            opacity: 0.9;
+        }
+        .bt-ball.fly{ animation: btSpin 0.35s linear infinite; }
+        @keyframes btSpin{ from { transform: translate(var(--x), var(--y)) rotate(0deg); } to { transform: translate(var(--x), var(--y)) rotate(360deg); } }
+
+        /* fielding highlight stronger */
+        .gm-cell{ transition: transform 0.12s ease, background 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease; }
+        .gm-cell:active{ transform: scale(0.98); }
+        /* .gm-cell.active (updated below) */
+        @keyframes gmActivePulse{
+            0%,100%{ transform: scale(1); }
+            50%{ transform: scale(1.02); }
+        }
+
+
         .game-modal-content { max-width: 760px; }
         .game-modal-head { margin-bottom: 14px; padding-top: 4px; }
         .game-modal-title { font-weight: 900; color: var(--idn-blue); font-size: 1.35rem; }
@@ -462,8 +625,14 @@
 
         /* fielding */
         .gm-grid { display:grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 12px; }
-        .gm-cell { background: #111; color: white; border-radius: 12px; height: 84px; display:flex; align-items:center; justify-content:center; font-weight: 900; border: 1px solid rgba(255,255,255,0.08); cursor:pointer; user-select:none; }
-        .gm-cell.active { outline: 3px solid rgba(180,151,90,0.95); box-shadow: 0 0 0 2px rgba(180,151,90,0.25), 0 0 22px rgba(180,151,90,0.35); }
+        .gm-cell { background: #111; color: white; border-radius: 12px; height: 84px; display:flex; align-items:center; justify-content:center; font-weight: 900; border: 1px solid rgba(255,255,255,0.08); cursor:pointer; user-select:none; -webkit-tap-highlight-color: transparent; transition: transform 0.12s ease, background 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease; }
+                .gm-cell.active{
+            outline: none;
+            border: 3px solid rgba(255, 216, 122, 1);
+            box-shadow: 0 0 0 5px rgba(180,151,90,0.22), 0 0 34px rgba(180,151,90,0.65);
+            background: linear-gradient(135deg, rgba(180,151,90,0.28) 0%, #111 65%);
+            animation: gmActivePulse 0.85s ease-in-out infinite;
+        }
         .gm-cell.hit { background: #0bbf6a; }
         .gm-cell.miss { background: #b10000; }
 
@@ -501,7 +670,7 @@
         <div class="nav-links">
             <a href="#schedule" id="nav-schedule"><span class="desktop-nav-text">賽程資訊</span><span class="mobile-nav-text">賽程</span></a>
             <a href="#videos" id="nav-videos"><span class="desktop-nav-text">精彩影音</span><span class="mobile-nav-text">影音</span></a>
-            <a href="#games" id="nav-games"><span class="desktop-nav-text">小遊戲訓練</span><span class="mobile-nav-text">遊戲</span></a>
+            <a href="#games" id="nav-games"><span class="desktop-nav-text">遊戲訓練</span><span class="mobile-nav-text">遊戲</span></a>
             <a href="#players" id="nav-players"><span class="desktop-nav-text">球隊成員</span><span class="mobile-nav-text">隊員</span></a>
             <button id="pwa-install-btn" onclick="installPWA()"><i class="fas fa-download"></i> 下載 APP</button>
         </div>
@@ -544,20 +713,34 @@
             <div class="video-grid-container" id="video-container"><p style="color:rgba(255,255,255,0.85); text-align:center; width:100%; padding: 30px 0;">影片載入中…</p></div>
         </div>
     </section>
-    <section id="games" style="background: linear-gradient(135deg, #0b1a2a 0%, #0b0f14 100%); color: white; position: relative; overflow: hidden; padding-top: 4rem; padding-bottom: 4rem;">
-        <div style="position:absolute; inset:0; background: radial-gradient(circle at 20% 10%, rgba(180,151,90,0.18) 0%, rgba(0,0,0,0) 55%), radial-gradient(circle at 80% 80%, rgba(0,85,143,0.22) 0%, rgba(0,0,0,0) 60%); opacity:1; z-index:0;"></div>
-        <div style="position: relative; z-index: 1;">
-            <h2 class="section-title" style="color:white; text-shadow: 0 2px 10px rgba(0,0,0,0.45);">小遊戲訓練</h2>
+    
+<section id="games" style="background: linear-gradient(135deg, #0b1a2a 0%, #0b0f14 100%); color: white; position: relative; overflow: hidden; padding-top: 3.2rem; padding-bottom: 3.2rem;">
+    <div style="position:absolute; inset:0; background: radial-gradient(circle at 20% 10%, rgba(180,151,90,0.18) 0%, rgba(0,0,0,0) 55%), radial-gradient(circle at 80% 80%, rgba(0,85,143,0.22) 0%, rgba(0,0,0,0) 60%); opacity:1; z-index:0;"></div>
+    <div style="position: relative; z-index: 1;">
+        <button type="button" class="games-toggle reveal" id="games-toggle" aria-expanded="false">
+            <div class="games-toggle-left">
+                <div class="games-toggle-title">遊戲訓練</div>
+                <div class="games-toggle-sub">可離線使用,成績只儲存在本機</div>
+            </div>
+            <div class="games-toggle-right">
+                <div class="games-toggle-badges">
+                    <span class="games-badge">3 款</span>
+                    <span class="games-badge ghost">離線</span>
+                </div>
+                <div class="games-chevron"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+  <path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+</svg></div>
+            </div>
+        </button>
 
-            <div class="games-subtitle">不影響既有資料與功能，純前端訓練小遊戲（可離線練習）。成績只儲存在本機。</div>
-
+        <div class="games-panel" id="games-panel">
             <div class="games-grid">
                 <div class="game-card reveal">
                     <div class="game-card-head">
                         <div class="game-title"><i class="fas fa-bolt"></i> 反應力</div>
                         <div class="game-best" id="best-reaction">最佳：—</div>
                     </div>
-                    <div class="game-desc">隨機等待後出現訊號，立刻點擊。支援 5 回合平均。</div>
+                    <div class="game-desc">隨機等待後出現訊號，立刻點擊。5 回合平均＋最佳紀錄。</div>
                     <div class="game-actions">
                         <button class="btn-main" onclick="openMiniGame('reaction')"><i class="fas fa-play"></i> 開始</button>
                         <button class="btn-outline" onclick="resetMiniGame('reaction')"><i class="fas fa-rotate"></i> 清除紀錄</button>
@@ -566,10 +749,17 @@
 
                 <div class="game-card reveal">
                     <div class="game-card-head">
-                        <div class="game-title"><i class="fas fa-baseball-bat-ball"></i> 打擊 TIMING</div>
+                        <div class="game-title"><svg class="gi-svg" viewBox="0 0 64 64" aria-hidden="true">
+  <circle cx="20" cy="14" r="6" fill="none"></circle>
+  <path d="M18 20c6 4 10 10 10 18v10" />
+  <path d="M28 28l14-10" />
+  <path d="M41 18l16-8" />
+  <path d="M24 36l-10 8" />
+  <path d="M28 48l10 10" />
+</svg> 打擊甜蜜點</div>
                         <div class="game-best" id="best-batting">最佳：—</div>
                     </div>
-                    <div class="game-desc">抓準甜蜜點揮棒。10 球總分，支援速度選擇。</div>
+                    <div class="game-desc">球沿拋物線進入打擊框時揮棒。10 球總分，支援速度。</div>
                     <div class="game-actions">
                         <button class="btn-main" onclick="openMiniGame('batting')"><i class="fas fa-play"></i> 開始</button>
                         <button class="btn-outline" onclick="resetMiniGame('batting')"><i class="fas fa-rotate"></i> 清除紀錄</button>
@@ -581,7 +771,7 @@
                         <div class="game-title"><i class="fas fa-hand-paper"></i> 守備點擊節奏</div>
                         <div class="game-best" id="best-fielding">最佳：—</div>
                     </div>
-                    <div class="game-desc">快速辨識落點，點擊正確區域。12 球總分＋命中率。</div>
+                    <div class="game-desc">快速辨識落點並點擊。12 球總分＋命中率。</div>
                     <div class="game-actions">
                         <button class="btn-main" onclick="openMiniGame('fielding')"><i class="fas fa-play"></i> 開始</button>
                         <button class="btn-outline" onclick="resetMiniGame('fielding')"><i class="fas fa-rotate"></i> 清除紀錄</button>
@@ -589,7 +779,9 @@
                 </div>
             </div>
         </div>
-    </section>
+    </div>
+</section>
+
 
 
 
@@ -693,7 +885,7 @@
         </div>
     </div>
 
-    <div id="game-modal" class="modal" role="dialog" aria-modal="true" aria-label="小遊戲訓練">
+    <div id="game-modal" class="modal" role="dialog" aria-modal="true" aria-label="遊戲訓練">
         <div class="modal-content game-modal-content">
             <button type="button" class="video-back-btn" onclick="userCloseModal()" aria-label="返回">
                 <i class="fas fa-arrow-left"></i>
@@ -1724,12 +1916,39 @@ function toggleScheduleView() {
         document.addEventListener('DOMContentLoaded', () => {
             // start simulated loader progress
             startLoaderProgress();
+            // games accordion toggle (預設收合)
+            const gamesToggleBtn = document.getElementById('games-toggle');
+            const gamesPanel = document.getElementById('games-panel');
+            const setGamesOpen = (open) => {
+                if (!gamesToggleBtn || !gamesPanel) return;
+                gamesToggleBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+                gamesPanel.classList.toggle('open', !!open);
+                if (open) {
+                    // ensure reveal animation updates after expanding
+                    window.setTimeout(() => { try { checkScroll(); } catch(e){} }, 80);
+                }
+            };
+            if (gamesToggleBtn && gamesPanel) {
+                gamesToggleBtn.addEventListener('click', () => {
+                    const isOpen = gamesToggleBtn.getAttribute('aria-expanded') === 'true';
+                    setGamesOpen(!isOpen);
+                });
+                if (window.location.hash === '#games') {
+                    setGamesOpen(true);
+                }
+                window.addEventListener('hashchange', () => {
+                    if (window.location.hash === '#games') setGamesOpen(true);
+                });
+            }
+
+
             // setup nav transitions
             const navAnchors = document.querySelectorAll('.nav-links a');
             navAnchors.forEach(anchor => {
                 anchor.addEventListener('click', (e) => {
                     const href = anchor.getAttribute('href');
                     if (!href || !href.startsWith('#')) return;
+                    if (href === \'#games\') { try { setGamesOpen(true); } catch(e){} }
                     if (document.startViewTransition && !reduceMotion) {
                         e.preventDefault();
                         const target = document.querySelector(href);
@@ -2006,152 +2225,291 @@ function toggleScheduleView() {
         };
     }
 
-    // ========== Game 2: Batting Timing ==========
+    // ========== Game 2: Batting Sweet Spot ==========
     function startBattingGame(){
         const best = getNum(LS.battingBest);
 
         setModal(
-            '打擊 TIMING 訓練',
-            '規則：在游標進入甜蜜點時按「揮棒」。共 10 球，速度可選。',
+            '打擊甜蜜點訓練',
+            '規則：當球沿拋物線進入打擊框時按「揮棒」。共 10 球，可選速度。',
             `
             <div class="gm-panel">
                 <div class="gm-row" style="margin-bottom:10px;">
-                    <div class="gm-stat"><div class="k">最佳總分</div><div class="v" id="bg-best">${fmtScore(best)}</div></div>
-                    <div class="gm-stat"><div class="k">目前總分</div><div class="v" id="bg-score">0 分</div></div>
-                    <div class="gm-stat"><div class="k">球數</div><div class="v" id="bg-ball">0 / 10</div></div>
+                    <div class="gm-stat"><div class="k">最佳總分</div><div class="v" id="bt-best">${fmtScore(best)}</div></div>
+                    <div class="gm-stat"><div class="k">目前總分</div><div class="v" id="bt-score">0 分</div></div>
+                    <div class="gm-stat"><div class="k">球數</div><div class="v" id="bt-count">0 / 10</div></div>
                 </div>
 
                 <div class="gm-row" style="margin-bottom:10px;">
                     <label style="font-weight:800; color: rgba(0,0,0,0.7);">速度</label>
-                    <select id="bg-speed" class="gm-select">
+                    <select id="bt-speed" class="gm-select">
                         <option value="slow">慢</option>
                         <option value="mid" selected>中</option>
                         <option value="fast">快</option>
                     </select>
-                    <button class="gm-big-btn secondary" id="bg-start" style="flex:1; min-width:180px;">開始 10 球</button>
+                    <button class="gm-big-btn secondary" id="bt-start" style="flex:1; min-width:180px;">開始 10 球</button>
                 </div>
 
-                <div class="gm-batting-track" id="bg-track">
-                    <div class="gm-batting-sweet"></div>
-                    <div class="gm-batting-cursor" id="bg-cursor" style="left:0;"></div>
+                <div class="bt-stage" id="bt-stage" aria-label="打擊訓練區">
+                    <svg class="bt-arc" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+                        <path id="bt-arc-path" d=""></path>
+                    </svg>
+                    <div class="bt-batter"><svg viewBox="0 0 64 64" aria-hidden="true">
+  <circle cx="20" cy="14" r="6" fill="none" stroke="rgba(0,0,0,0.75)" stroke-width="3.8" />
+  <path d="M18 20c6 4 10 10 10 18v10" fill="none" stroke="rgba(0,0,0,0.75)" stroke-width="3.8" stroke-linecap="round" />
+  <path d="M28 28l14-10" fill="none" stroke="rgba(0,0,0,0.75)" stroke-width="3.8" stroke-linecap="round" />
+  <path d="M41 18l16-8" fill="none" stroke="rgba(0,0,0,0.75)" stroke-width="3.8" stroke-linecap="round" />
+  <path d="M24 36l-10 8" fill="none" stroke="rgba(0,0,0,0.75)" stroke-width="3.8" stroke-linecap="round" />
+  <path d="M28 48l10 10" fill="none" stroke="rgba(0,0,0,0.75)" stroke-width="3.8" stroke-linecap="round" />
+</svg></div>
+                    <div class="bt-zone" id="bt-zone" aria-label="打擊範圍"></div>
+                    <div class="bt-ball" id="bt-ball"></div>
                 </div>
 
                 <div class="gm-batting-controls">
-                    <button class="gm-big-btn" id="bg-swing">揮棒</button>
+                    <button class="gm-big-btn" id="bt-swing">揮棒</button>
                 </div>
 
-                <div class="gm-hint" id="bg-hint">提示：游標越接近甜蜜點中央分數越高。</div>
+                <div class="gm-hint" id="bt-hint">提示：球越靠近打擊框中心，分數越高（可點擊區域也支援揮棒）。</div>
             </div>
             `
         );
 
-        const cursor = document.getElementById('bg-cursor');
-        const startBtn = document.getElementById('bg-start');
-        const swingBtn = document.getElementById('bg-swing');
-        const speedSel = document.getElementById('bg-speed');
-        const scoreEl = document.getElementById('bg-score');
-        const ballEl = document.getElementById('bg-ball');
-        const hintEl = document.getElementById('bg-hint');
-        const bestEl = document.getElementById('bg-best');
+        const stage = document.getElementById('bt-stage');
+        const ballEl = document.getElementById('bt-ball');
+        const zoneEl = document.getElementById('bt-zone');
+        const arcPath = document.getElementById('bt-arc-path');
+
+        const startBtn = document.getElementById('bt-start');
+        const swingBtn = document.getElementById('bt-swing');
+        const speedSel = document.getElementById('bt-speed');
+
+        const scoreEl = document.getElementById('bt-score');
+        const countEl = document.getElementById('bt-count');
+        const hintEl = document.getElementById('bt-hint');
+        const bestEl = document.getElementById('bt-best');
 
         let raf = 0;
         let running = false;
-        let t0 = 0;
-        let dir = 1; // 1 right, -1 left
-        let pos = 0; // 0..1
+        let pitchStart = 0;
+        let pitchDur = 0;
         let balls = 0;
         let score = 0;
+        let swung = false;
 
-        const speedMap = {
-            slow: 1.4,
-            mid: 2.2,
-            fast: 3.2
+        let path = null;
+        let lastX = -999, lastY = -999;
+
+        const durMap = {
+            slow: 1650,
+            mid: 1250,
+            fast: 950
         };
+
+        function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
 
         function setUI(){
             if (scoreEl) scoreEl.textContent = `${score} 分`;
-            if (ballEl) ballEl.textContent = `${balls} / 10`;
+            if (countEl) countEl.textContent = `${balls} / 10`;
+        }
+
+        function relRect(el){
+            const r = el.getBoundingClientRect();
+            const s = stage.getBoundingClientRect();
+            return { x: r.left - s.left, y: r.top - s.top, w: r.width, h: r.height };
+        }
+
+        function qBez(t, p0, p1, p2){
+            const u = 1 - t;
+            return (u*u*p0) + (2*u*t*p1) + (t*t*p2);
+        }
+
+        function updateArc(sx, sy, cx, cy, ex, ey){
+            if (!arcPath) return;
+            const w = stage.clientWidth || 1;
+            const h = stage.clientHeight || 1;
+            const toPct = (x, y) => ({ x: (x / w) * 100, y: (y / h) * 100 });
+            const p0 = toPct(sx, sy);
+            const pc = toPct(cx, cy);
+            const p2 = toPct(ex, ey);
+            arcPath.setAttribute('d', `M ${p0.x.toFixed(2)} ${p0.y.toFixed(2)} Q ${pc.x.toFixed(2)} ${pc.y.toFixed(2)} ${p2.x.toFixed(2)} ${p2.y.toFixed(2)}`);
         }
 
         function evalSwing(){
-            // sweet zone is [0.41..0.59], center 0.50
-            const d = Math.abs(pos - 0.50);
+            const z = relRect(zoneEl);
+            const cx = z.x + z.w/2;
+            const cy = z.y + z.h/2;
+
+            const inZone = (lastX >= z.x && lastX <= z.x + z.w && lastY >= z.y && lastY <= z.y + z.h);
             let pts = 0;
             let label = 'MISS';
-            if (d <= 0.02){ pts = 100; label = 'PERFECT'; }
-            else if (d <= 0.05){ pts = 70; label = 'GOOD'; }
-            else if (d <= 0.09){ pts = 40; label = 'OK'; }
-            else { pts = 0; label = 'MISS'; }
+
+            if (inZone){
+                const d = Math.hypot(lastX - cx, lastY - cy);
+                const maxD = Math.min(z.w, z.h) * 0.5;
+                const r = d / (maxD || 1);
+
+                if (r <= 0.18) { pts = 100; label = 'PERFECT'; }
+                else if (r <= 0.35) { pts = 70; label = 'GOOD'; }
+                else if (r <= 0.55) { pts = 40; label = 'OK'; }
+                else { pts = 20; label = 'EDGE'; }
+            } else {
+                const dx = Math.max(z.x - lastX, 0, lastX - (z.x + z.w));
+                const dy = Math.max(z.y - lastY, 0, lastY - (z.y + z.h));
+                const dEdge = Math.hypot(dx, dy);
+                if (dEdge <= 18) { pts = 10; label = 'FOUL'; }
+                else { pts = 0; label = 'MISS'; }
+            }
 
             score += pts;
             balls += 1;
             if (hintEl) hintEl.textContent = `${label} +${pts}`;
             setUI();
 
-            if (balls >= 10){
-                running = false;
-                if (startBtn){ startBtn.disabled = false; startBtn.textContent = '再來 10 球'; }
-                if (swingBtn) swingBtn.disabled = true;
+            // stop current pitch animation
+            cancelAnimationFrame(raf);
+            raf = 0;
+            if (zoneEl) zoneEl.classList.remove('hot');
+            if (ballEl) ballEl.classList.remove('fly');
 
-                const curBest = getNum(LS.battingBest);
-                if (curBest === null || score > curBest){
-                    setNum(LS.battingBest, score);
-                }
-                if (bestEl) bestEl.textContent = fmtScore(getNum(LS.battingBest));
-                updateGamesSummary();
+            if (balls >= 10){
+                finish();
+                return;
             }
+
+            setTimeout(nextPitch, 520);
         }
 
         function tick(ts){
-            if (!running) return;
-            if (!t0) t0 = ts;
+            if (!running || !path) return;
+            const t = clamp((ts - pitchStart) / pitchDur, 0, 1);
 
-            const spdKey = speedSel ? speedSel.value : 'mid';
-            const spd = speedMap[spdKey] || speedMap.mid;
+            const x = qBez(t, path.sx, path.cx, path.ex);
+            const y = qBez(t, path.sy, path.cy, path.ey);
+            lastX = x; lastY = y;
 
-            // update pos with a triangle wave
-            const dt = (ts - t0) / 1000;
-            t0 = ts;
-
-            pos += dir * dt * spd * 0.55;
-            if (pos >= 1){ pos = 1; dir = -1; }
-            if (pos <= 0){ pos = 0; dir = 1; }
-
-            if (cursor){
-                cursor.style.left = `calc(${(pos*100).toFixed(3)}% - 5px)`;
+            if (ballEl){
+                ballEl.style.setProperty('--x', `${x.toFixed(1)}px`);
+                ballEl.style.setProperty('--y', `${y.toFixed(1)}px`);
+                if (!ballEl.classList.contains('fly')) ballEl.classList.add('fly');
             }
+
+            const z = relRect(zoneEl);
+            const inZone = (x >= z.x && x <= z.x + z.w && y >= z.y && y <= z.y + z.h);
+            if (zoneEl) zoneEl.classList.toggle('hot', inZone);
+
+            if (t >= 1){
+                // pitch finished, if not swung => miss
+                if (zoneEl) zoneEl.classList.remove('hot');
+                if (ballEl) ballEl.classList.remove('fly');
+
+                if (!swung){
+                    balls += 1;
+                    if (hintEl) hintEl.textContent = 'MISS +0（太慢了）';
+                    setUI();
+                    if (balls >= 10) {
+                        finish();
+                        return;
+                    }
+                    setTimeout(nextPitch, 520);
+                }
+                return;
+            }
+
+            raf = requestAnimationFrame(tick);
+        }
+
+        function nextPitch(){
+            if (!running) return;
+            swung = false;
+
+            const z = relRect(zoneEl);
+            const w = stage.clientWidth || 1;
+            const h = stage.clientHeight || 1;
+
+            const sx = w * 0.94;
+            const sy = h * (0.20 + Math.random() * 0.10);
+            const ex = z.x + z.w * (0.55 + (Math.random() * 0.10 - 0.05));
+            const ey = z.y + z.h * (0.52 + (Math.random() * 0.16 - 0.08));
+            const cx = w * (0.64 + (Math.random() * 0.06 - 0.03));
+            const cy = h * (0.03 + Math.random() * 0.10);
+
+            path = { sx, sy, cx, cy, ex, ey };
+            updateArc(sx, sy, cx, cy, ex, ey);
+
+            const spKey = speedSel ? speedSel.value : 'mid';
+            const base = durMap[spKey] || durMap.mid;
+            pitchDur = base * (0.92 + Math.random() * 0.16);
+
+            pitchStart = performance.now();
+            if (hintEl) hintEl.textContent = `第 ${balls + 1} 球：等球進入打擊框 → 揮棒`;
+            if (ballEl){
+                ballEl.style.setProperty('--x', `${sx.toFixed(1)}px`);
+                ballEl.style.setProperty('--y', `${sy.toFixed(1)}px`);
+                ballEl.classList.add('fly');
+            }
+            cancelAnimationFrame(raf);
             raf = requestAnimationFrame(tick);
         }
 
         function start(){
             balls = 0;
             score = 0;
-            pos = 0;
-            dir = 1;
-            t0 = 0;
             setUI();
-            if (hintEl) hintEl.textContent = '開始！抓準甜蜜點揮棒。';
             running = true;
-            if (startBtn){ startBtn.disabled = true; startBtn.textContent = '進行中…'; }
+            if (startBtn) { startBtn.disabled = true; startBtn.textContent = '進行中…'; }
             if (swingBtn) swingBtn.disabled = false;
-            cancelAnimationFrame(raf);
-            raf = requestAnimationFrame(tick);
+            if (hintEl) hintEl.textContent = '開始！等球進入打擊框再揮棒。';
+            nextPitch();
         }
 
         function swing(){
-            if (!running) return;
+            if (!running || swung) return;
+            swung = true;
             evalSwing();
+        }
+
+        function finish(){
+            running = false;
+            cancelAnimationFrame(raf);
+            raf = 0;
+            if (startBtn) { startBtn.disabled = false; startBtn.textContent = '再來 10 球'; }
+            if (swingBtn) swingBtn.disabled = true;
+
+            const curBest = getNum(LS.battingBest);
+            if (curBest === null || score > curBest){
+                setNum(LS.battingBest, score);
+            }
+            if (bestEl) bestEl.textContent = fmtScore(getNum(LS.battingBest));
+            updateGamesSummary();
+            if (hintEl) hintEl.textContent = '完成！可再挑戰一次。';
+        }
+
+        function onKey(e){
+            if (e.code === 'Space') {
+                e.preventDefault();
+                swing();
+            }
         }
 
         if (startBtn) startBtn.addEventListener('click', start);
         if (swingBtn) swingBtn.addEventListener('click', swing);
+        if (stage) stage.addEventListener('click', (e) => {
+            // avoid accidental double trigger when pressing buttons
+            if (e.target === startBtn || e.target === swingBtn) return;
+            swing();
+        });
+        document.addEventListener('keydown', onKey);
         if (swingBtn) swingBtn.disabled = true;
 
         currentGameCleanup = () => {
             running = false;
             cancelAnimationFrame(raf);
+            raf = 0;
+            document.removeEventListener('keydown', onKey);
         };
     }
+
 
     // ========== Game 3: Fielding Rhythm ==========
     function startFieldingGame(){
