@@ -1948,7 +1948,7 @@ function toggleScheduleView() {
                 anchor.addEventListener('click', (e) => {
                     const href = anchor.getAttribute('href');
                     if (!href || !href.startsWith('#')) return;
-                    if (href === \'#games\') { try { setGamesOpen(true); } catch(e){} }
+                    if (href === '#games') { try { setGamesOpen(true); } catch(e){} }
                     if (document.startViewTransition && !reduceMotion) {
                         e.preventDefault();
                         const target = document.querySelector(href);
