@@ -421,7 +421,7 @@
     
         /* --- Mini Games (新增，不影響既有) --- */
         .games-subtitle { text-align:center; max-width: 920px; margin: 0 auto 24px; opacity: 0.9; font-size: 0.95rem; padding: 0 14px; }
-        .games-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; max-width: 1100px; margin: 0 auto; padding: 0 14px; }
+        .games-grid { display: grid; grid-template-columns: 1fr; gap: 18px; max-width: 880px; margin: 0 auto; padding: 0 14px; }
         .game-card { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); border-radius: 14px; padding: 18px; box-shadow: 0 18px 40px rgba(0,0,0,0.25); backdrop-filter: blur(6px); }
         .game-card-head { display:flex; align-items:flex-start; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
         .game-title { font-weight: 900; letter-spacing: 0.3px; font-size: 1.05rem; display:flex; align-items:center; gap: 8px; }
@@ -639,6 +639,57 @@
         .gm-reaction-go { background: linear-gradient(135deg, #0bbf6a 0%, #0a7d49 100%); color:white; box-shadow: inset 0 0 0 2px rgba(255,255,255,0.18); }
         .gm-reaction-fail { background: linear-gradient(135deg, #ff4d4d 0%, #b10000 100%); color:white; }
 
+        /* reaction (premium UI) */
+        .rg-wrap{ padding: 14px; }
+        .rg-stats{ display:grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 12px; }
+        .rg-stat{
+            background: white;
+            border: 1px solid #e8e8e8;
+            border-radius: 14px;
+            padding: 10px 12px;
+            box-shadow: 0 10px 22px rgba(0,0,0,0.06);
+        }
+        .rg-stat .k{ font-size: 0.8rem; color: rgba(0,0,0,0.55); }
+        .rg-stat .v{ font-weight: 1000; font-size: 1.05rem; color: #111; margin-top: 2px; }
+
+        .rg-pad{
+            position: relative;
+            overflow:hidden;
+            border-style: solid;
+            border-width: 1px;
+            border-color: rgba(0,0,0,0.18);
+            box-shadow: 0 18px 32px rgba(0,0,0,0.10);
+        }
+        .rg-pad:before{
+            content:"";
+            position:absolute; inset:0;
+            background:
+                radial-gradient(circle at 18% 20%, rgba(180,151,90,0.18) 0%, rgba(0,0,0,0) 55%),
+                radial-gradient(circle at 85% 80%, rgba(0,85,143,0.14) 0%, rgba(0,0,0,0) 60%);
+            opacity: 0.9;
+            pointer-events:none;
+        }
+        .rg-pad > *{ position: relative; z-index: 1; text-align:center; }
+        .rg-pad-title{ font-size: 1.12rem; font-weight: 1000; letter-spacing: 0.3px; }
+        .rg-pad-sub{ margin-top: 6px; font-size: 0.92rem; opacity: 0.82; }
+
+        .rg-progress{
+            display:flex; gap: 8px; justify-content:center;
+            margin-top: 12px;
+        }
+        .rg-dot{
+            width: 10px; height: 10px; border-radius: 999px;
+            background: rgba(0,0,0,0.12);
+            border: 1px solid rgba(0,0,0,0.14);
+        }
+        .rg-dot.active{ background: rgba(0,85,143,0.25); border-color: rgba(0,85,143,0.38); }
+        .rg-dot.done{ background: rgba(11,191,106,0.28); border-color: rgba(11,191,106,0.42); }
+
+        @media (max-width: 520px){
+            .rg-stats{ grid-template-columns: 1fr; }
+        }
+    
+
         /* batting */
         .gm-batting-track { margin-top: 12px; background: #111; border-radius: 12px; height: 18px; position: relative; overflow:hidden; }
         .gm-batting-sweet { position:absolute; top:0; height:100%; width: 18%; left: 41%; background: rgba(180,151,90,0.9); box-shadow: 0 0 18px rgba(180,151,90,0.35); }
@@ -747,8 +798,9 @@
             </div>
             <div class="games-toggle-right">
                 <div class="games-toggle-badges">
-                    <span class="games-badge">3 款</span>
-</div>
+                    <span class="games-badge">1 款</span>
+                    <span class="games-badge ghost" id="best-reaction">最佳：—</span>
+                </div>
                 <div class="games-chevron"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
   <path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
 </svg></div>
@@ -757,45 +809,35 @@
 
         <div class="games-panel" id="games-panel">
             <div class="games-grid">
-                <div class="game-card reveal">
-                    <div class="game-card-head">
-                        <div class="game-title"><i class="fas fa-bolt"></i> 反應力</div>
-                        <div class="game-best" id="best-reaction">最佳：—</div>
+                <div class="game-card game-card-feature reveal" aria-label="反應力訓練卡片">
+                    <div class="gcf-top">
+                        <div class="gcf-title">
+                            <div class="gcf-icon"><i class="fas fa-bolt"></i></div>
+                            <div class="gcf-title-text">
+                                <div class="gcf-name">反應力訓練</div>
+                                <div class="gcf-desc">等待訊號變綠後立刻點擊。5 回合取平均與最佳。</div>
+                            </div>
+                        </div>
+                        <div class="gcf-pills">
+                            <span class="gcf-pill" id="rg-last-pill">最近：—</span>
+                            <span class="gcf-pill ghost" id="rg-avg-pill">近 5 平均：—</span>
+                        </div>
                     </div>
-                    <div class="game-desc">隨機等待後出現訊號，立刻點擊。5 回合平均＋最佳紀錄。</div>
+
+                    <div class="gcf-mid">
+                        <div class="gcf-metric">
+                            <div class="k">穩定度</div>
+                            <div class="v" id="rg-stability">—</div>
+                        </div>
+                        <div class="gcf-metric grow">
+                            <div class="k">最近 10 次</div>
+                            <div class="gcf-spark" id="rg-spark" aria-label="反應力走勢"></div>
+                        </div>
+                    </div>
+
                     <div class="game-actions">
-                        <button class="btn-main" onclick="openMiniGame('reaction')"><i class="fas fa-play"></i> 開始</button>
+                        <button class="btn-main" onclick="openMiniGame('reaction')"><i class="fas fa-play"></i> 開始訓練</button>
                         <button class="btn-outline" onclick="resetMiniGame('reaction')"><i class="fas fa-rotate"></i> 清除紀錄</button>
-                    </div>
-                </div>
-
-                <div class="game-card reveal">
-                    <div class="game-card-head">
-                        <div class="game-title"><svg class="gi-svg" viewBox="0 0 64 64" aria-hidden="true">
-  <g fill="currentColor">
-    <circle cx="22" cy="14" r="6"/>
-    <path d="M18 24h10c4.4 0 8 3.6 8 8v6l7 5c2 1.5 2.2 4.4 0.4 6.1l-1.8 1.7c-1.4 1.3-3.6 1.4-5.1 0.2l-6.5-5V58c0 2.2-1.8 4-4 4h-2.5c-2.2 0-4-1.8-4-4V42l-6.8 11.3c-1.2 2-3.8 2.6-5.8 1.4-2-1.2-2.6-3.8-1.4-5.8l9.4-15.7V32c0-4.4 3.6-8 8-8z"/>
-    <rect x="38" y="6" width="24" height="6" rx="3" transform="rotate(-25 38 6)"/>
-  </g>
-</svg> 打擊甜蜜點</div>
-                        <div class="game-best" id="best-batting">最佳：—</div>
-                    </div>
-                    <div class="game-desc">球沿拋物線進入打擊框時揮棒。10 球總分，支援速度。</div>
-                    <div class="game-actions">
-                        <button class="btn-main" onclick="openMiniGame('batting')"><i class="fas fa-play"></i> 開始</button>
-                        <button class="btn-outline" onclick="resetMiniGame('batting')"><i class="fas fa-rotate"></i> 清除紀錄</button>
-                    </div>
-                </div>
-
-                <div class="game-card reveal">
-                    <div class="game-card-head">
-                        <div class="game-title"><i class="fas fa-hand-paper"></i> 守備點擊節奏</div>
-                        <div class="game-best" id="best-fielding">最佳：—</div>
-                    </div>
-                    <div class="game-desc">快速辨識落點並點擊。12 球總分＋命中率。</div>
-                    <div class="game-actions">
-                        <button class="btn-main" onclick="openMiniGame('fielding')"><i class="fas fa-play"></i> 開始</button>
-                        <button class="btn-outline" onclick="resetMiniGame('fielding')"><i class="fas fa-rotate"></i> 清除紀錄</button>
                     </div>
                 </div>
             </div>
@@ -2010,18 +2052,12 @@ function toggleScheduleView() {
 (function(){
     const LS = {
         reactionBest: 'idn_game_reaction_best',
-        reactionRuns: 'idn_game_reaction_runs',
-        battingBest: 'idn_game_batting_best',
-        fieldingBest: 'idn_game_fielding_best'
+        reactionRuns: 'idn_game_reaction_runs'
     };
 
     function fmtMs(v){
         if (v === null || v === undefined || v === '' || isNaN(Number(v))) return '—';
         return `${Math.round(Number(v))} ms`;
-    }
-    function fmtScore(v){
-        if (v === null || v === undefined || v === '' || isNaN(Number(v))) return '—';
-        return `${Math.round(Number(v))} 分`;
     }
 
     function getNum(key){
@@ -2041,39 +2077,74 @@ function toggleScheduleView() {
             const raw = localStorage.getItem(LS.reactionRuns);
             if (!raw) return [];
             const arr = JSON.parse(raw);
-            return Array.isArray(arr) ? arr.filter(x => typeof x === 'number' && isFinite(x)) : [];
+            return Array.isArray(arr) ? arr.filter(x => typeof x === 'number' && isFinite(x) && x > 0 && x < 5000) : [];
         } catch(e){ return []; }
     }
     function setRuns(arr){
         try { localStorage.setItem(LS.reactionRuns, JSON.stringify(arr.slice(-20))); } catch(e){}
     }
 
-    function updateGamesSummary(){
-        const rBest = getNum(LS.reactionBest);
-        const bBest = getNum(LS.battingBest);
-        const fBest = getNum(LS.fieldingBest);
-
-        const rEl = document.getElementById('best-reaction');
-        const bEl = document.getElementById('best-batting');
-        const fEl = document.getElementById('best-fielding');
-
-        if (rEl) rEl.textContent = `最佳：${fmtMs(rBest)}`;
-        if (bEl) bEl.textContent = `最佳：${fmtScore(bBest)}`;
-        if (fEl) fEl.textContent = `最佳：${fmtScore(fBest)}`;
+    function mean(arr){
+        if (!arr || !arr.length) return null;
+        return arr.reduce((a,b)=>a+b,0) / arr.length;
+    }
+    function stddev(arr){
+        if (!arr || arr.length < 2) return null;
+        const m = mean(arr);
+        const v = arr.reduce((acc,x)=>acc + Math.pow(x - m, 2), 0) / arr.length;
+        return Math.sqrt(v);
     }
 
-    // expose reset for section buttons
-    window.resetMiniGame = function(type){
-        if (type === 'reaction'){
-            localStorage.removeItem(LS.reactionBest);
-            localStorage.removeItem(LS.reactionRuns);
-        } else if (type === 'batting'){
-            localStorage.removeItem(LS.battingBest);
-        } else if (type === 'fielding'){
-            localStorage.removeItem(LS.fieldingBest);
+    function renderSparkline(el, runs){
+        if (!el) return;
+        const data = (runs || []).slice(-10);
+        if (!data.length){
+            el.innerHTML = '';
+            return;
         }
+        const min = Math.min(...data);
+        const max = Math.max(...data);
+        const span = Math.max(1, max - min);
+
+        el.innerHTML = data.map((v) => {
+            const t = (v - min) / span;          // 0..1 (higher = slower)
+            const h = Math.round(16 + t * 28);   // 16..44
+            const cls = (v <= (min + span*0.35)) ? 'bar good' : (v >= (min + span*0.8)) ? 'bar bad' : 'bar';
+            return `<span class="${cls}" style="height:${h}px" title="${Math.round(v)} ms"></span>`;
+        }).join('');
+    }
+
+    function updateGamesSummary(){
+        const runs = getRuns();
+        const best = getNum(LS.reactionBest);
+
+        const bestEl = document.getElementById('best-reaction');
+        if (bestEl) bestEl.textContent = `最佳：${fmtMs(best)}`;
+
+        const last = runs.length ? runs[runs.length - 1] : null;
+        const lastEl = document.getElementById('rg-last-pill');
+        if (lastEl) lastEl.textContent = `最近：${last ? fmtMs(last) : '—'}`;
+
+        const last5 = runs.slice(-5);
+        const avg5 = mean(last5);
+        const avgEl = document.getElementById('rg-avg-pill');
+        if (avgEl) avgEl.textContent = `近 5 平均：${avg5 ? fmtMs(avg5) : '—'}`;
+
+        const sd = stddev(last5);
+        const stEl = document.getElementById('rg-stability');
+        if (stEl) stEl.textContent = (sd ? `±${Math.round(sd)} ms` : '—');
+
+        renderSparkline(document.getElementById('rg-spark'), runs);
+    }
+
+    // expose reset for section button
+    window.resetMiniGame = function(type){
+        if (type !== 'reaction') type = 'reaction';
+        localStorage.removeItem(LS.reactionBest);
+        localStorage.removeItem(LS.reactionRuns);
         updateGamesSummary();
-        alert('已清除本機紀錄');
+        if (typeof showToast === 'function') showToast('已清除本機紀錄', 'info', 1800);
+        else alert('已清除本機紀錄');
     };
 
     // ========== Modal helpers ==========
@@ -2084,26 +2155,30 @@ function toggleScheduleView() {
     let currentGameCleanup = null;
 
     function setModal(title, meta, bodyHtml){
-        if (gmTitle()) gmTitle().textContent = title || '小遊戲';
+        if (gmTitle()) gmTitle().textContent = title || '';
         if (gmMeta()) gmMeta().textContent = meta || '';
         if (gmBody()) gmBody().innerHTML = bodyHtml || '';
     }
 
     function openGameModal(){
-        // stop any existing game loop
-        if (typeof currentGameCleanup === 'function') { try { currentGameCleanup(); } catch(e){} }
-        currentGameCleanup = null;
-        openModalCommon('game-modal');
+        const modal = document.getElementById('game-modal');
+        if (!modal) return;
+
+        if (typeof openModalCommon === 'function'){
+            openModalCommon(modal);
+        } else {
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+            history.pushState({ modal: true }, '');
+        }
     }
 
-    // If user closes modal, ensure cleanup happens (popstate will call closeAllModals; we hook into it lightly)
-    // We can't override closeAllModals; so we just also listen to visibility of modal.
     function bindModalAutoCleanup(){
         const modal = document.getElementById('game-modal');
         if (!modal) return;
         const obs = new MutationObserver(() => {
             const disp = modal.style.display;
-            if (disp === 'none' || disp === '') {
+            if (disp === 'none' || disp === ''){
                 if (typeof currentGameCleanup === 'function') { try { currentGameCleanup(); } catch(e){} }
                 currentGameCleanup = null;
             }
@@ -2111,7 +2186,7 @@ function toggleScheduleView() {
         obs.observe(modal, { attributes:true, attributeFilter:['style'] });
     }
 
-    // ========== Game 1: Reaction ==========
+    // ========== Game: Reaction ==========
     function startReactionGame(){
         const runs = getRuns();
         const best = getNum(LS.reactionBest);
@@ -2120,14 +2195,24 @@ function toggleScheduleView() {
             '反應力訓練',
             '規則：等待訊號變綠後立刻點擊（太早點算犯規）',
             `
-            <div class="gm-panel">
-                <div class="gm-row" style="margin-bottom:10px;">
-                    <div class="gm-stat"><div class="k">最佳成績</div><div class="v" id="rg-best">${fmtMs(best)}</div></div>
-                    <div class="gm-stat"><div class="k">近 5 次平均</div><div class="v" id="rg-avg">—</div></div>
-                    <div class="gm-stat"><div class="k">回合</div><div class="v" id="rg-round">0 / 5</div></div>
+            <div class="gm-panel rg-wrap">
+                <div class="rg-stats">
+                    <div class="rg-stat"><div class="k">最佳</div><div class="v" id="rg-best">${fmtMs(best)}</div></div>
+                    <div class="rg-stat"><div class="k">近 5 平均</div><div class="v" id="rg-avg">—</div></div>
+                    <div class="rg-stat"><div class="k">回合</div><div class="v" id="rg-round">0 / 5</div></div>
                 </div>
-                <button class="gm-big-btn" id="rg-start">開始 5 回合</button>
-                <div class="gm-reaction-area gm-reaction-wait" id="rg-area">點「開始」後等待訊號</div>
+
+                <button class="gm-big-btn" id="rg-start"><i class="fas fa-play"></i> 開始 5 回合</button>
+
+                <div class="gm-reaction-area gm-reaction-wait rg-pad" id="rg-area" role="button" aria-label="反應力點擊區">
+                    <div class="rg-pad-title" id="rg-area-title">點「開始」後等待訊號</div>
+                    <div class="rg-pad-sub" id="rg-area-sub">訊號變綠後立刻點擊</div>
+                </div>
+
+                <div class="rg-progress" id="rg-progress" aria-label="回合進度">
+                    ${Array.from({length:5}).map(()=>'<span class="rg-dot"></span>').join('')}
+                </div>
+
                 <div class="gm-hint" id="rg-hint">提示：不要偷點，會判定犯規。</div>
             </div>
             `
@@ -2135,10 +2220,13 @@ function toggleScheduleView() {
 
         const btn = document.getElementById('rg-start');
         const area = document.getElementById('rg-area');
+        const titleEl = document.getElementById('rg-area-title');
+        const subEl = document.getElementById('rg-area-sub');
         const roundEl = document.getElementById('rg-round');
         const avgEl = document.getElementById('rg-avg');
         const bestEl = document.getElementById('rg-best');
         const hintEl = document.getElementById('rg-hint');
+        const dots = Array.from(document.querySelectorAll('#rg-progress .rg-dot'));
 
         let active = false;
         let goTime = 0;
@@ -2148,6 +2236,12 @@ function toggleScheduleView() {
 
         function updateStats(){
             if (roundEl) roundEl.textContent = `${round} / 5`;
+            dots.forEach((d, i) => {
+                if (!d) return;
+                d.classList.toggle('done', i < round);
+                d.classList.toggle('active', i === round);
+            });
+
             if (scores.length){
                 const last5 = scores.slice(-5);
                 const avg = last5.reduce((a,b)=>a+b,0) / last5.length;
@@ -2157,21 +2251,22 @@ function toggleScheduleView() {
             }
         }
 
-        function setAreaState(state, text){
+        function setAreaState(state, title, sub){
             if (!area) return;
             area.classList.remove('gm-reaction-wait','gm-reaction-go','gm-reaction-fail');
             area.classList.add(state);
-            area.textContent = text;
+            if (titleEl) titleEl.textContent = title || '';
+            if (subEl) subEl.textContent = sub || '';
         }
 
         function scheduleGo(){
-            const delay = 700 + Math.random() * 1800;
-            setAreaState('gm-reaction-wait', '等待訊號…');
+            const delay = 750 + Math.random() * 1900;
+            setAreaState('gm-reaction-wait', '等待訊號…', '保持專注，別偷點');
             if (hintEl) hintEl.textContent = '等待中…';
             timer = setTimeout(() => {
                 active = true;
                 goTime = performance.now();
-                setAreaState('gm-reaction-go', '現在！點擊！');
+                setAreaState('gm-reaction-go', '現在！', '立刻點擊');
                 if (hintEl) hintEl.textContent = 'GO!';
             }, delay);
         }
@@ -2182,14 +2277,15 @@ function toggleScheduleView() {
             timer = null;
 
             if (foul){
-                setAreaState('gm-reaction-fail', '犯規：太早點了');
+                setAreaState('gm-reaction-fail', '犯規', '太早點了');
                 if (hintEl) hintEl.textContent = '犯規不計入成績';
             } else {
                 scores.push(ms);
                 runs.push(ms);
                 setRuns(runs);
-                setAreaState('gm-reaction-wait', `成績：${fmtMs(ms)}`);
-                if (hintEl) hintEl.textContent = '下一回合即將開始…';
+
+                setAreaState('gm-reaction-wait', `成績：${fmtMs(ms)}`, '下一回合即將開始…');
+
                 const curBest = getNum(LS.reactionBest);
                 if (curBest === null || ms < curBest){
                     setNum(LS.reactionBest, ms);
@@ -2202,7 +2298,7 @@ function toggleScheduleView() {
 
             if (round >= 5){
                 if (btn) btn.disabled = false;
-                if (btn) btn.textContent = '再來一組（5 回合）';
+                if (btn) btn.innerHTML = '<i class="fas fa-rotate"></i> 再來一組（5 回合）';
                 if (hintEl) hintEl.textContent = '完成！可再挑戰一次。';
                 updateGamesSummary();
                 return;
@@ -2214,13 +2310,11 @@ function toggleScheduleView() {
         function onAreaClick(){
             if (!btn || !area) return;
             if (btn.disabled === false && round === 0 && timer === null){
-                // not started
                 return;
             }
             if (!timer && !active) return;
 
             if (!active){
-                // clicked too early
                 finishRound(0, true);
             } else {
                 const ms = performance.now() - goTime;
@@ -2232,438 +2326,25 @@ function toggleScheduleView() {
             round = 0;
             scores = [];
             updateStats();
-            if (btn){ btn.disabled = true; btn.textContent = '進行中…'; }
+            if (btn){ btn.disabled = true; btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> 進行中…'; }
             scheduleGo();
         }
 
         if (btn) btn.addEventListener('click', startSet);
         if (area) area.addEventListener('click', onAreaClick);
 
+        updateStats();
+
         currentGameCleanup = () => {
             clearTimeout(timer);
             timer = null;
-            if (area) area.replaceWith(area.cloneNode(true)); // remove handlers safely
+            if (area) area.replaceWith(area.cloneNode(true));
         };
     }
 
-    // ========== Game 2: Batting Sweet Spot ==========
-    function startBattingGame(){
-        const best = getNum(LS.battingBest);
-
-        setModal(
-            '打擊甜蜜點訓練',
-            '規則：當球沿拋物線進入打擊框時按「揮棒」。共 10 球，可選速度。',
-            `
-            <div class="gm-panel">
-                <div class="gm-row" style="margin-bottom:10px;">
-                    <div class="gm-stat"><div class="k">最佳總分</div><div class="v" id="bt-best">${fmtScore(best)}</div></div>
-                    <div class="gm-stat"><div class="k">目前總分</div><div class="v" id="bt-score">0 分</div></div>
-                    <div class="gm-stat"><div class="k">球數</div><div class="v" id="bt-count">0 / 10</div></div>
-                </div>
-
-                <div class="gm-row" style="margin-bottom:10px;">
-                    <label style="font-weight:800; color: rgba(0,0,0,0.7);">速度</label>
-                    <select id="bt-speed" class="gm-select">
-                        <option value="slow">慢</option>
-                        <option value="mid" selected>中</option>
-                        <option value="fast">快</option>
-                    </select>
-                    <button class="gm-big-btn secondary" id="bt-start" style="flex:1; min-width:180px;">開始 10 球</button>
-                </div>
-
-                <div class="bt-stage" id="bt-stage" aria-label="打擊訓練區">
-                    <svg class="bt-arc" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-                        <path id="bt-arc-path" d=""></path>
-                    </svg>
-                    <div class="bt-batter"><svg viewBox="0 0 64 64" aria-hidden="true">
-  <g fill="currentColor">
-    <circle cx="22" cy="14" r="6"/>
-    <path d="M18 24h10c4.4 0 8 3.6 8 8v6l7 5c2 1.5 2.2 4.4 0.4 6.1l-1.8 1.7c-1.4 1.3-3.6 1.4-5.1 0.2l-6.5-5V58c0 2.2-1.8 4-4 4h-2.5c-2.2 0-4-1.8-4-4V42l-6.8 11.3c-1.2 2-3.8 2.6-5.8 1.4-2-1.2-2.6-3.8-1.4-5.8l9.4-15.7V32c0-4.4 3.6-8 8-8z"/>
-    <rect x="38" y="6" width="24" height="6" rx="3" transform="rotate(-25 38 6)"/>
-  </g>
-</svg></div>
-                    <div class="bt-zone" id="bt-zone" aria-label="打擊範圍"></div>
-                    <div class="bt-ball" id="bt-ball"></div>
-                </div>
-
-                <div class="gm-batting-controls">
-                    <button class="gm-big-btn" id="bt-swing">揮棒</button>
-                </div>
-
-                <div class="gm-hint" id="bt-hint">提示：球越靠近打擊框中心，分數越高（可點擊區域也支援揮棒）。</div>
-            </div>
-            `
-        );
-
-        const stage = document.getElementById('bt-stage');
-        const ballEl = document.getElementById('bt-ball');
-        const zoneEl = document.getElementById('bt-zone');
-        const arcPath = document.getElementById('bt-arc-path');
-
-        const startBtn = document.getElementById('bt-start');
-        const swingBtn = document.getElementById('bt-swing');
-        const speedSel = document.getElementById('bt-speed');
-
-        const scoreEl = document.getElementById('bt-score');
-        const countEl = document.getElementById('bt-count');
-        const hintEl = document.getElementById('bt-hint');
-        const bestEl = document.getElementById('bt-best');
-
-        let raf = 0;
-        let running = false;
-        let pitchStart = 0;
-        let pitchDur = 0;
-        let balls = 0;
-        let score = 0;
-        let swung = false;
-
-        let path = null;
-        let lastX = -999, lastY = -999;
-
-        const durMap = {
-            slow: 1650,
-            mid: 1250,
-            fast: 950
-        };
-
-        function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
-
-        function setUI(){
-            if (scoreEl) scoreEl.textContent = `${score} 分`;
-            if (countEl) countEl.textContent = `${balls} / 10`;
-        }
-
-        function relRect(el){
-            const r = el.getBoundingClientRect();
-            const s = stage.getBoundingClientRect();
-            return { x: r.left - s.left, y: r.top - s.top, w: r.width, h: r.height };
-        }
-
-        function qBez(t, p0, p1, p2){
-            const u = 1 - t;
-            return (u*u*p0) + (2*u*t*p1) + (t*t*p2);
-        }
-
-        function updateArc(sx, sy, cx, cy, ex, ey){
-            if (!arcPath) return;
-            const w = stage.clientWidth || 1;
-            const h = stage.clientHeight || 1;
-            const toPct = (x, y) => ({ x: (x / w) * 100, y: (y / h) * 100 });
-            const p0 = toPct(sx, sy);
-            const pc = toPct(cx, cy);
-            const p2 = toPct(ex, ey);
-            arcPath.setAttribute('d', `M ${p0.x.toFixed(2)} ${p0.y.toFixed(2)} Q ${pc.x.toFixed(2)} ${pc.y.toFixed(2)} ${p2.x.toFixed(2)} ${p2.y.toFixed(2)}`);
-        }
-
-        function evalSwing(){
-            const z = relRect(zoneEl);
-            const cx = z.x + z.w/2;
-            const cy = z.y + z.h/2;
-
-            const inZone = (lastX >= z.x && lastX <= z.x + z.w && lastY >= z.y && lastY <= z.y + z.h);
-            let pts = 0;
-            let label = 'MISS';
-
-            if (inZone){
-                const d = Math.hypot(lastX - cx, lastY - cy);
-                const maxD = Math.min(z.w, z.h) * 0.5;
-                const r = d / (maxD || 1);
-
-                if (r <= 0.18) { pts = 100; label = 'PERFECT'; }
-                else if (r <= 0.35) { pts = 70; label = 'GOOD'; }
-                else if (r <= 0.55) { pts = 40; label = 'OK'; }
-                else { pts = 20; label = 'EDGE'; }
-            } else {
-                const dx = Math.max(z.x - lastX, 0, lastX - (z.x + z.w));
-                const dy = Math.max(z.y - lastY, 0, lastY - (z.y + z.h));
-                const dEdge = Math.hypot(dx, dy);
-                if (dEdge <= 18) { pts = 10; label = 'FOUL'; }
-                else { pts = 0; label = 'MISS'; }
-            }
-
-            score += pts;
-            balls += 1;
-            if (hintEl) hintEl.textContent = `${label} +${pts}`;
-            setUI();
-
-            // stop current pitch animation
-            cancelAnimationFrame(raf);
-            raf = 0;
-            if (zoneEl) zoneEl.classList.remove('hot');
-            if (ballEl) ballEl.classList.remove('fly');
-
-            if (balls >= 10){
-                finish();
-                return;
-            }
-
-            setTimeout(nextPitch, 520);
-        }
-
-        function tick(ts){
-            if (!running || !path) return;
-            const t = clamp((ts - pitchStart) / pitchDur, 0, 1);
-
-            const x = qBez(t, path.sx, path.cx, path.ex);
-            const y = qBez(t, path.sy, path.cy, path.ey);
-            lastX = x; lastY = y;
-
-            if (ballEl){
-                ballEl.style.setProperty('--x', `${x.toFixed(1)}px`);
-                ballEl.style.setProperty('--y', `${y.toFixed(1)}px`);
-                if (!ballEl.classList.contains('fly')) ballEl.classList.add('fly');
-            }
-
-            const z = relRect(zoneEl);
-            const inZone = (x >= z.x && x <= z.x + z.w && y >= z.y && y <= z.y + z.h);
-            if (zoneEl) zoneEl.classList.toggle('hot', inZone);
-
-            if (t >= 1){
-                // pitch finished, if not swung => miss
-                if (zoneEl) zoneEl.classList.remove('hot');
-                if (ballEl) ballEl.classList.remove('fly');
-
-                if (!swung){
-                    balls += 1;
-                    if (hintEl) hintEl.textContent = 'MISS +0（太慢了）';
-                    setUI();
-                    if (balls >= 10) {
-                        finish();
-                        return;
-                    }
-                    setTimeout(nextPitch, 520);
-                }
-                return;
-            }
-
-            raf = requestAnimationFrame(tick);
-        }
-
-        function nextPitch(){
-            if (!running) return;
-            swung = false;
-
-            const z = relRect(zoneEl);
-            const w = stage.clientWidth || 1;
-            const h = stage.clientHeight || 1;
-
-            const sx = w * 0.94;
-            const sy = h * (0.20 + Math.random() * 0.10);
-            const ex = z.x + z.w * (0.55 + (Math.random() * 0.10 - 0.05));
-            const ey = z.y + z.h * (0.52 + (Math.random() * 0.16 - 0.08));
-            const cx = w * (0.64 + (Math.random() * 0.06 - 0.03));
-            const cy = h * (0.03 + Math.random() * 0.10);
-
-            path = { sx, sy, cx, cy, ex, ey };
-            updateArc(sx, sy, cx, cy, ex, ey);
-
-            const spKey = speedSel ? speedSel.value : 'mid';
-            const base = durMap[spKey] || durMap.mid;
-            pitchDur = base * (0.92 + Math.random() * 0.16);
-
-            pitchStart = performance.now();
-            if (hintEl) hintEl.textContent = `第 ${balls + 1} 球：等球進入打擊框 → 揮棒`;
-            if (ballEl){
-                ballEl.style.setProperty('--x', `${sx.toFixed(1)}px`);
-                ballEl.style.setProperty('--y', `${sy.toFixed(1)}px`);
-                ballEl.classList.add('fly');
-            }
-            cancelAnimationFrame(raf);
-            raf = requestAnimationFrame(tick);
-        }
-
-        function start(){
-            balls = 0;
-            score = 0;
-            setUI();
-            running = true;
-            if (startBtn) { startBtn.disabled = true; startBtn.textContent = '進行中…'; }
-            if (swingBtn) swingBtn.disabled = false;
-            if (hintEl) hintEl.textContent = '開始！等球進入打擊框再揮棒。';
-            nextPitch();
-        }
-
-        function swing(){
-            if (!running || swung) return;
-            swung = true;
-            evalSwing();
-        }
-
-        function finish(){
-            running = false;
-            cancelAnimationFrame(raf);
-            raf = 0;
-            if (startBtn) { startBtn.disabled = false; startBtn.textContent = '再來 10 球'; }
-            if (swingBtn) swingBtn.disabled = true;
-
-            const curBest = getNum(LS.battingBest);
-            if (curBest === null || score > curBest){
-                setNum(LS.battingBest, score);
-            }
-            if (bestEl) bestEl.textContent = fmtScore(getNum(LS.battingBest));
-            updateGamesSummary();
-            if (hintEl) hintEl.textContent = '完成！可再挑戰一次。';
-        }
-
-        function onKey(e){
-            if (e.code === 'Space') {
-                e.preventDefault();
-                swing();
-            }
-        }
-
-        if (startBtn) startBtn.addEventListener('click', start);
-        if (swingBtn) swingBtn.addEventListener('click', swing);
-        if (stage) stage.addEventListener('click', (e) => {
-            // avoid accidental double trigger when pressing buttons
-            if (e.target === startBtn || e.target === swingBtn) return;
-            swing();
-        });
-        document.addEventListener('keydown', onKey);
-        if (swingBtn) swingBtn.disabled = true;
-
-        currentGameCleanup = () => {
-            running = false;
-            cancelAnimationFrame(raf);
-            raf = 0;
-            document.removeEventListener('keydown', onKey);
-        };
-    }
-
-
-    // ========== Game 3: Fielding Rhythm ==========
-    function startFieldingGame(){
-        const best = getNum(LS.fieldingBest);
-
-        setModal(
-            '守備點擊節奏',
-            '規則：亮起的落點出現後，限時點擊正確格子。共 12 球。',
-            `
-            <div class="gm-panel">
-                <div class="gm-row" style="margin-bottom:10px;">
-                    <div class="gm-stat"><div class="k">最佳總分</div><div class="v" id="fg-best">${fmtScore(best)}</div></div>
-                    <div class="gm-stat"><div class="k">目前總分</div><div class="v" id="fg-score">0 分</div></div>
-                    <div class="gm-stat"><div class="k">球數</div><div class="v" id="fg-ball">0 / 12</div></div>
-                </div>
-                <button class="gm-big-btn secondary" id="fg-start">開始 12 球</button>
-                <div class="gm-grid" id="fg-grid">
-                    ${Array.from({length:9}).map((_,i)=>`<div class="gm-cell" data-i="${i}">${i+1}</div>`).join('')}
-                </div>
-                <div class="gm-hint" id="fg-hint">提示：命中越多分數越高（命中 +10，失誤 -3）。</div>
-            </div>
-            `
-        );
-
-        const bestEl = document.getElementById('fg-best');
-        const scoreEl = document.getElementById('fg-score');
-        const ballEl = document.getElementById('fg-ball');
-        const hintEl = document.getElementById('fg-hint');
-        const startBtn = document.getElementById('fg-start');
-        const grid = document.getElementById('fg-grid');
-        const cells = grid ? Array.from(grid.querySelectorAll('.gm-cell')) : [];
-
-        let activeIdx = -1;
-        let balls = 0;
-        let score = 0;
-        let running = false;
-        let timeout = null;
-
-        function setUI(){
-            if (scoreEl) scoreEl.textContent = `${score} 分`;
-            if (ballEl) ballEl.textContent = `${balls} / 12`;
-        }
-
-        function clearActive(){
-            cells.forEach(c => c.classList.remove('active','hit','miss'));
-            activeIdx = -1;
-        }
-
-        function nextBall(){
-            clearActive();
-            if (balls >= 12){
-                running = false;
-                if (startBtn){ startBtn.disabled = false; startBtn.textContent = '再來 12 球'; }
-                if (hintEl) hintEl.textContent = '完成！可再挑戰一次。';
-                const curBest = getNum(LS.fieldingBest);
-                if (curBest === null || score > curBest){
-                    setNum(LS.fieldingBest, score);
-                }
-                if (bestEl) bestEl.textContent = fmtScore(getNum(LS.fieldingBest));
-                updateGamesSummary();
-                return;
-            }
-
-            const idx = Math.floor(Math.random()*9);
-            activeIdx = idx;
-            const cell = cells[idx];
-            if (cell) cell.classList.add('active');
-
-            // time window tightens a little
-            const windowMs = Math.max(550, 950 - balls*25);
-            if (hintEl) hintEl.textContent = `第 ${balls+1} 球：請點亮起落點（限時 ${windowMs}ms）`;
-
-            clearTimeout(timeout);
-            timeout = setTimeout(() => {
-                // missed
-                if (!running) return;
-                balls += 1;
-                score = Math.max(0, score - 3);
-                if (cell){ cell.classList.remove('active'); cell.classList.add('miss'); }
-                setUI();
-                setTimeout(nextBall, 420);
-            }, windowMs);
-        }
-
-        function onCellClick(e){
-            if (!running) return;
-            const t = e.currentTarget;
-            const i = Number(t.getAttribute('data-i'));
-            if (!isFinite(i)) return;
-
-            clearTimeout(timeout);
-            timeout = null;
-
-            if (i === activeIdx){
-                t.classList.remove('active'); t.classList.add('hit');
-                score += 10;
-                if (hintEl) hintEl.textContent = '命中 +10';
-            } else {
-                t.classList.add('miss');
-                score = Math.max(0, score - 3);
-                if (hintEl) hintEl.textContent = '失誤 -3';
-            }
-            balls += 1;
-            setUI();
-            setTimeout(nextBall, 420);
-        }
-
-        function start(){
-            balls = 0;
-            score = 0;
-            setUI();
-            clearActive();
-            running = true;
-            if (startBtn){ startBtn.disabled = true; startBtn.textContent = '進行中…'; }
-            nextBall();
-        }
-
-        cells.forEach(c => c.addEventListener('click', onCellClick));
-        if (startBtn) startBtn.addEventListener('click', start);
-
-        currentGameCleanup = () => {
-            running = false;
-            clearTimeout(timeout);
-            timeout = null;
-        };
-    }
-
-    // expose open function for section buttons
     window.openMiniGame = function(type){
         openGameModal();
-        if (type === 'reaction') startReactionGame();
-        else if (type === 'batting') startBattingGame();
-        else if (type === 'fielding') startFieldingGame();
-        else startReactionGame();
+        startReactionGame();
     };
 
     document.addEventListener('DOMContentLoaded', () => {
