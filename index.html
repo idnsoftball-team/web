@@ -2164,13 +2164,19 @@ function toggleScheduleView() {
         const modal = document.getElementById('game-modal');
         if (!modal) return;
 
+        // openModalCommon in this project expects an element ID string
         if (typeof openModalCommon === 'function'){
-            openModalCommon(modal);
-        } else {
-            modal.style.display = 'block';
-            document.body.style.overflow = 'hidden';
-            history.pushState({ modal: true }, '');
+            try {
+                openModalCommon('game-modal');
+                return;
+            } catch(e){
+                // fall through to manual open
+            }
         }
+
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        try { history.pushState({ modal: true }, ''); } catch(e){}
     }
 
     function bindModalAutoCleanup(){
