@@ -187,7 +187,7 @@
         .lineup-container { max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
         .roster-panel { background: var(--idn-gray); border-radius: 12px; padding: 15px; border: 1px solid var(--border-light); box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); }
         .roster-panel h3 { font-size: 1.05rem; color: var(--idn-blue); margin-bottom: 12px; border-bottom: 2px solid var(--border-light); padding-bottom: 8px; display: flex; align-items: center; gap: 8px; }
-        .roster-list { max-height: 180px; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px; padding-right: 5px; }
+        .roster-list { max-height: 270px; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px; padding-right: 5px; }
         .roster-list::-webkit-scrollbar { width: 4px; } .roster-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 2px; }
         .roster-item { display: flex; align-items: center; justify-content: space-between; background: var(--surface); padding: 6px 12px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); cursor: pointer; border: 1px solid var(--border-light); }
         .roster-cb { transform: scale(1.2); accent-color: var(--idn-blue); margin-left: 8px; }
@@ -226,8 +226,10 @@
         .chip-del { color: #ef4444; cursor: pointer; font-size: 1.1rem; padding: 0 4px; flex-shrink: 0; transition: transform 0.2s; }
         .chip-del:hover { transform: scale(1.2); }
 
-        .fielding-row { width: 100%; background: var(--surface); border: 1px solid var(--border-light); border-radius: 12px; padding: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.02); }
+        .fielding-row { width: 100%; background: var(--surface); border: 1px solid var(--border-light); border-radius: 12px; padding: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.02); }
         .fielding-map { width: 100%; aspect-ratio: 1 / 0.85; max-width: 420px; margin: 0 auto; background: radial-gradient(circle at 50% 105%, #d4a373 0%, #d4a373 23%, transparent 23.5%), radial-gradient(circle at 50% 90%, transparent 45%, #d4a373 45.5%, #d4a373 55%, transparent 55.5%), #4ade80; border-radius: 12px 12px 45% 45%; position: relative; box-shadow: inset 0 0 15px rgba(0,0,0,0.15); border: 2px solid var(--border-light); }
+
+        .fielding-row .fielding-map { aspect-ratio: 1 / 0.78; }
         .field-slot { position: absolute; width: 44px; height: 44px; transform: translate(-50%, -50%); border-radius: 50%; border: 2px dashed rgba(255,255,255,0.7); background: rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; z-index: 2; transition: background 0.2s, border-color 0.2s; cursor: pointer; }
         .field-slot.sortable-drag { background: rgba(197, 160, 89, 0.6); }
         .field-slot::after { content: attr(data-pos); position: absolute; bottom: -20px; font-size: 0.85rem; font-weight: 800; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.8); pointer-events: none; }
@@ -332,6 +334,10 @@
             .roster-list { grid-template-columns: 1fr !important; }
             .batting-col { flex: 0 0 145px; } 
             .tactics-side-by-side { gap: 8px; }
+
+            /* 守備位置圖：外野區域更緊湊（利於手機同屏操作） */
+            .fielding-row { padding: 5px; }
+            .fielding-row .fielding-map { aspect-ratio: 1 / 0.74; max-width: 380px; }
 
             /* Lineup View Modal 手機版垂直堆疊 */
             .lineup-view-layout { flex-direction: column; }
@@ -1298,7 +1304,7 @@ const now = Date.now();
             // 填入預備席（同格式）
             const benchArr = Array.isArray(currentLineupData.bench) ? currentLineupData.bench : [];
             const benchHtml = benchArr.map((b, i) => {
-                const pos = posById[String(b.id)] || getPrimaryPos(b.id) || '';
+                const pos = '';
                 const posEl = pos ? `<span style="font-weight:900; color:var(--text-muted); font-size:0.95rem; letter-spacing:0.5px;">${pos}</span>` : `<span style="width:24px;"></span>`;
                 return `
                 <div style="display:flex; align-items:center; padding:10px 12px; border-bottom:1px solid var(--border-light); background:var(--idn-gray); border-radius:8px;">
