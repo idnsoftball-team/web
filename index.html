@@ -245,11 +245,14 @@
         .field-slot .player-chip::after { content: attr(data-num); font-size: 1.05rem; font-weight: 900; }
 
         /* --- Lineup View Modal (觀眾檢視卡片) --- */
-        #lineup-view-modal .modal-content { max-width: 850px; padding: 20px; background: var(--idn-gray); }
-        .lineup-view-layout { display: flex; gap: 20px; }
-        .lineup-view-field { flex: 1.5; }
-        .lineup-view-batting { flex: 1; background: var(--surface); padding: 18px; border-radius: 16px; border: 1px solid var(--border-light); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        #lineup-view-modal .modal-content { max-width: 1050px; padding: 20px; background: var(--idn-gray); }
+        .lineup-view-layout { display: flex; gap: 20px; align-items: stretch; }
+        .lineup-view-field { flex: 1.5; min-width: 0; }
+        .lineup-view-batting { flex: 1; min-width: 0; background: var(--surface); padding: 18px; border-radius: 16px; border: 1px solid var(--border-light); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
         .lineup-view-batting h4 { text-align: center; color: var(--idn-blue); font-weight: 900; margin-bottom: 16px; font-size: 1.2rem; letter-spacing: 1px; }
+
+        .lineup-view-bench { flex: 1; min-width: 0; background: var(--surface); padding: 18px; border-radius: 16px; border: 1px solid var(--border-light); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .lineup-view-bench h4 { text-align: center; color: var(--idn-blue); font-weight: 900; margin-bottom: 16px; font-size: 1.2rem; letter-spacing: 1px; }
 
         /* Reveal & Modals */
         .reveal { opacity: 0; margin-top: 35px; transition: opacity 0.8s cubic-bezier(0.25, 0.8, 0.25, 1), margin-top 0.8s cubic-bezier(0.25, 0.8, 0.25, 1); }
@@ -700,6 +703,10 @@
                 <div class="lineup-view-batting">
                     <h4>先發打擊順序</h4>
                     <div id="view-batting-list" style="display:flex; flex-direction:column; gap:8px;"></div>
+                </div>
+                <div class="lineup-view-bench">
+                    <h4>預備席</h4>
+                    <div id="view-bench-list" style="display:flex; flex-direction:column; gap:8px;"></div>
                 </div>
             </div>
         </div>
@@ -1206,8 +1213,12 @@ function submitLineup() {
             });
             
             if (batters.length === 0) { showToast("打序為空，無法發布", "error"); return; }
-            sendToGas("update_lineup", { batters, fielders }, "btn-submit-lineup", "發布中...");
-        }
+            const bench = [];
+            document.querySelectorAll('#bench-list .player-chip').forEach(chip => {
+                bench.push({ id: chip.getAttribute('data-id'), num: chip.getAttribute('data-num'), name: chip.getAttribute('data-name') });
+            });
+            sendToGas("update_lineup", { batters, fielders, bench }, "btn-submit-lineup", "發布中...");
+}
 
         // 確認發布按鈕是否要顯示 (3小時限制)
         
@@ -1249,14 +1260,54 @@ const now = Date.now();
             localStorage.setItem('idn_last_seen_lineup', currentLineupData.timestamp.toString());
             document.getElementById('public-order-list-btn').classList.remove('new-update-alert');
             
-            // 填入打線
-            const battingHtml = currentLineupData.batters.map((b, i) => `
+            // 建立球員 id -> 守位 對照
+            const posById = {};
+            if (currentLineupData.fielders) {
+                Object.keys(currentLineupData.fielders).forEach(pos => {
+                    const f = currentLineupData.fielders[pos];
+                    if (f && f.id) posById[String(f.id)] = pos;
+                });
+            }
+
+            // 建立球員 id -> 常用守位（若未指派守位，預備席可用此顯示）
+            const playerById = {};
+            (allPlayers || []).forEach(p => { if (p && p.rowId != null) playerById[String(p.rowId)] = p; });
+            const getPrimaryPos = (id) => {
+                const p = playerById[String(id)];
+                if (!p) return '';
+                if (Array.isArray(p.posRaw) && p.posRaw.length) return String(p.posRaw[0]).trim();
+                if (typeof p.positions === 'string' && p.positions.trim()) {
+                    return p.positions.split('/')[0].trim();
+                }
+                return '';
+            };
+
+            // 填入先發打線（加入守位）
+            const battingHtml = (currentLineupData.batters || []).map((b, i) => {
+                const pos = posById[String(b.id)] || '';
+                const posEl = pos ? `<span style="font-weight:900; color:var(--text-muted); font-size:0.95rem; letter-spacing:0.5px;">${pos}</span>` : `<span style="width:24px;"></span>`;
+                return `
                 <div style="display:flex; align-items:center; padding:10px 12px; border-bottom:1px solid var(--border-light); background:var(--idn-gray); border-radius:8px;">
                     <span style="font-weight:900; color:var(--idn-gold); width:28px; font-size:1.1rem;">${i+1}.</span>
                     <span style="flex:1; font-weight:800; color:var(--idn-blue); font-size:1.05rem;">#${b.num} ${b.name}</span>
-                </div>
-            `).join('');
-            document.getElementById('view-batting-list').innerHTML = battingHtml;
+                    ${posEl}
+                </div>`;
+            }).join('');
+            document.getElementById('view-batting-list').innerHTML = battingHtml || `<div style="padding:12px; text-align:center; color:var(--text-muted); font-weight:700;">尚未發布</div>`;
+
+            // 填入預備席（同格式）
+            const benchArr = Array.isArray(currentLineupData.bench) ? currentLineupData.bench : [];
+            const benchHtml = benchArr.map((b, i) => {
+                const pos = posById[String(b.id)] || getPrimaryPos(b.id) || '';
+                const posEl = pos ? `<span style="font-weight:900; color:var(--text-muted); font-size:0.95rem; letter-spacing:0.5px;">${pos}</span>` : `<span style="width:24px;"></span>`;
+                return `
+                <div style="display:flex; align-items:center; padding:10px 12px; border-bottom:1px solid var(--border-light); background:var(--idn-gray); border-radius:8px;">
+                    <span style="font-weight:900; color:var(--idn-gold); width:28px; font-size:1.1rem;">${i+1}.</span>
+                    <span style="flex:1; font-weight:800; color:var(--idn-blue); font-size:1.05rem;">#${b.num} ${b.name}</span>
+                    ${posEl}
+                </div>`;
+            }).join('');
+            document.getElementById('view-bench-list').innerHTML = benchHtml || `<div style="padding:12px; text-align:center; color:var(--text-muted); font-weight:700;">目前無預備席</div>`;
             
             // 填入守備圖
             document.querySelectorAll('.view-field-slot').forEach(slot => {
