@@ -59,8 +59,9 @@
 
         /* 首頁 Hero 區塊 */
         header { height: 65vh; background-color: var(--idn-black); background-size: cover; background-position: center; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: white; position: relative; overflow: hidden; border-bottom: 4px solid var(--idn-gold); }
-        header::before { content: ''; position: absolute; top:0; left:0; width:100%; height:100%; background-image: radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px); background-size: 24px 24px; z-index: 1; opacity: 0.4; }
-        header::after { content: ''; position: absolute; top:0; left:0; width:100%; height:100%; background: linear-gradient(to bottom, rgba(15, 23, 42, 0.4), rgba(15, 23, 42, 0.85)); z-index: 0;}
+        #hero-bg-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; z-index: 0; display: block; opacity: 1; }
+        header::before { content: ''; position: absolute; top:0; left:0; width:100%; height:100%; background-image: radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px); background-size: 24px 24px; z-index: 1; opacity: 0.4; pointer-events: none; }
+        header::after { content: ''; position: absolute; top:0; left:0; width:100%; height:100%; background: linear-gradient(to bottom, rgba(15, 23, 42, 0.4), rgba(15, 23, 42, 0.85)); z-index: 1; pointer-events: none; }
         
         .hero-content { position: relative; z-index: 2; padding: 0 20px; transform: translateY(-20px); }
         .hero-title { font-size: 4rem; font-weight: 900; text-shadow: 0 4px 15px rgba(0,0,0,0.8); margin-bottom: 10px; line-height: 1.1; letter-spacing: 2px; }
@@ -468,6 +469,7 @@
     </nav>
 
     <header id="hero-section">
+        <img id="hero-bg-img" src="" alt="" decoding="async" fetchpriority="high">
         <div class="order-list-btn-container">
             <button id="public-order-list-btn" class="order-list-btn" style="display:none;" onclick="openLineupView()">
                 <i class="fas fa-clipboard-list" style="font-size:1.1rem;"></i> Order List
@@ -878,7 +880,7 @@ function updateLineupPublishButton() {
         function applyCoreData(data) {
             if (data.hero && data.hero.bgUrl) {
                 const heroUrl = convertDriveLink(data.hero.bgUrl);
-                setHeroBgSafe(heroUrl);
+                setHeroImage(heroUrl);
             }
             if (data.hero && data.hero.mvpUrl) { currentMvpEmbedUrl = getYouTubeEmbedUrl(data.hero.mvpUrl); document.getElementById('mvp-url-input').value = data.hero.mvpUrl; }
             currentMvpNumber = (data.hero && data.hero.mvpNumber) ? data.hero.mvpNumber : ""; document.getElementById('mvp-number-input').value = currentMvpNumber || "";
@@ -920,7 +922,6 @@ updateLineupPublishButton();}
 
         window.onload = async function () {
             try {
-                try { const cached = localStorage.getItem('idn_cached_hero_bg'); if (cached) document.getElementById('hero-section').style.backgroundImage = `url('${cached}')`; } catch(e){}
                 await tryRestoreAdminSession();
                 const core = await loadCoreData(); hideLoader();
                 if (core.mode === 'core') loadVideos();
@@ -938,25 +939,24 @@ updateLineupPublishButton();}
         }
         function playVideo(id) { document.getElementById('yt-player').src = `https://www.youtube.com/embed/${id}?autoplay=1`; openModalCommon('video-modal'); }
         function playMvpVideo() { if(!currentMvpEmbedUrl) { showToast("尚未設定 MVP 影片", "error"); return; } if (typeof confetti === "function") confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#00558F', '#c5a059', '#ffffff'], zIndex: 10000 }); document.getElementById('hero-video-frame').src = currentMvpEmbedUrl; openModalCommon('hero-video-overlay'); }
-        function clearBadHeroCache() {
-            try { localStorage.removeItem('idn_cached_hero_bg'); } catch(e) {}
-        }
-        function setHeroBgSafe(url) {
-            if (!url) return;
-            const heroEl = document.getElementById('hero-section');
-            if (!heroEl) return;
-            const img = new Image();
-            img.onload = () => {
-                heroEl.style.backgroundImage = `url('${url}')`;
-                try { localStorage.setItem('idn_cached_hero_bg', url); } catch(e) {}
-            };
+        function convertDriveLink(url) { if (!url) return ""; if (url.includes("drive.google.com")) { const parts = url.match(/[-\w]{25,}/); if (parts) return `https://drive.google.com/thumbnail?id=${parts[0]}&sz=w1600`; } return url; }
+        
+        function setHeroImage(url) {
+            const img = document.getElementById('hero-bg-img');
+            if (!img || !url) return;
+            const bust = url + (url.includes('?') ? '&' : '?') + 'cb=' + Date.now();
             img.onerror = () => {
-                console.warn('Hero image load failed:', url);
-                try { localStorage.removeItem('idn_cached_hero_bg'); } catch(e) {}
+                const retry = url + (url.includes('?') ? '&' : '?') + 'retry=' + Date.now();
+                if (img.dataset.retried === '1') {
+                    console.warn('Hero image load failed:', url);
+                    return;
+                }
+                img.dataset.retried = '1';
+                img.src = retry;
             };
-            img.src = url;
+            img.onload = () => { img.dataset.retried = '0'; };
+            img.src = bust;
         }
-        function convertDriveLink(url) { if (!url) return ""; if (url.includes("drive.google.com")) { const parts = url.match(/[-\w]{25,}/); if (parts) return `https://drive.google.com/thumbnail?id=${parts[0]}&sz=w800`; } return url; }
         
         function handleImageUpload(input) {
             const file = input.files[0]; if (!file) return; const reader = new FileReader();
