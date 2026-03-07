@@ -877,8 +877,8 @@ function updateLineupPublishButton() {
 
         function applyCoreData(data) {
             if (data.hero && data.hero.bgUrl) {
-                const heroUrl = convertDriveLink(data.hero.bgUrl); document.getElementById('hero-section').style.backgroundImage = `url('${heroUrl}')`;
-                try { localStorage.setItem('idn_cached_hero_bg', heroUrl); } catch (e) {}
+                const heroUrl = convertDriveLink(data.hero.bgUrl);
+                setHeroBgSafe(heroUrl);
             }
             if (data.hero && data.hero.mvpUrl) { currentMvpEmbedUrl = getYouTubeEmbedUrl(data.hero.mvpUrl); document.getElementById('mvp-url-input').value = data.hero.mvpUrl; }
             currentMvpNumber = (data.hero && data.hero.mvpNumber) ? data.hero.mvpNumber : ""; document.getElementById('mvp-number-input').value = currentMvpNumber || "";
@@ -938,6 +938,24 @@ updateLineupPublishButton();}
         }
         function playVideo(id) { document.getElementById('yt-player').src = `https://www.youtube.com/embed/${id}?autoplay=1`; openModalCommon('video-modal'); }
         function playMvpVideo() { if(!currentMvpEmbedUrl) { showToast("尚未設定 MVP 影片", "error"); return; } if (typeof confetti === "function") confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#00558F', '#c5a059', '#ffffff'], zIndex: 10000 }); document.getElementById('hero-video-frame').src = currentMvpEmbedUrl; openModalCommon('hero-video-overlay'); }
+        function clearBadHeroCache() {
+            try { localStorage.removeItem('idn_cached_hero_bg'); } catch(e) {}
+        }
+        function setHeroBgSafe(url) {
+            if (!url) return;
+            const heroEl = document.getElementById('hero-section');
+            if (!heroEl) return;
+            const img = new Image();
+            img.onload = () => {
+                heroEl.style.backgroundImage = `url('${url}')`;
+                try { localStorage.setItem('idn_cached_hero_bg', url); } catch(e) {}
+            };
+            img.onerror = () => {
+                console.warn('Hero image load failed:', url);
+                try { localStorage.removeItem('idn_cached_hero_bg'); } catch(e) {}
+            };
+            img.src = url;
+        }
         function convertDriveLink(url) { if (!url) return ""; if (url.includes("drive.google.com")) { const parts = url.match(/[-\w]{25,}/); if (parts) return `https://drive.google.com/thumbnail?id=${parts[0]}&sz=w800`; } return url; }
         
         function handleImageUpload(input) {
