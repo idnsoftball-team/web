@@ -324,19 +324,31 @@
             section { padding: 4rem 5%; }
             .section-title { font-size: 1.9rem; margin-bottom: 2rem; }
             
-            .schedule-table-container, .desktop-only { display: none !important; } 
+            /* --- 完美還原原本賽程表版型設計 --- */
+            .schedule-table-container table, .schedule-table-container thead, .desktop-only { display: none !important; } 
             .mobile-only { display: block !important; }
             
             .schedule-mobile-list { display: flex; flex-direction: column; gap: 16px; width: 100%; }
             .schedule-card { background: var(--surface); border-radius: 16px; box-shadow: var(--card-shadow); border: 1px solid var(--border-light); overflow: hidden; width: 100%; position: relative; }
-            .mobile-admin-actions { position: relative; display: none; padding-top: 14px; margin-top: 14px; border-top: 1px dashed var(--border-light); justify-content: flex-end; gap: 10px; background: transparent; box-shadow: none; border-radius: 0; right: auto; top: auto; }
-            body.is-admin .mobile-admin-actions { display: flex; }
+            
+            /* 編輯刪除按鈕：恢復絕對定位，並且把 top 從 12px 往下移動到 48px，避免擋住球場地點 */
+            .mobile-admin-actions { position: absolute; top: 48px; right: 12px; background: rgba(255,255,255,0.95); padding: 6px; border-radius: 10px; z-index: 5; display: none; border: 1px solid var(--border-light); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+            body.is-admin .mobile-admin-actions { display: flex; gap: 8px; }
             
             .card-header { background: var(--idn-gray); border-bottom: 1px solid var(--border-light); padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; }
             .card-date { font-weight: 900; font-size: 1.15rem; color: var(--idn-blue); letter-spacing: 0.5px; } 
-            .card-loc { font-size: 0.95rem; color: var(--text-main); font-weight: 700; display: flex; align-items: center; gap: 6px; }
+            .card-loc { font-size: 0.95rem; color: var(--text-main); font-weight: 700; margin-right: 40px; display: flex; align-items: center; gap: 6px; }
             .card-body { padding: 18px; } 
-            
+            .card-row { display: flex; margin-bottom: 12px; align-items: center; font-size: 0.95rem; }
+            .card-label { color: var(--text-muted); font-weight: 700; width: 65px; flex-shrink: 0; font-size: 0.9rem; } 
+            .card-value { color: var(--text-main); font-weight: 600; }
+            .games-compact { display: flex; gap: 8px; flex-wrap: wrap; }
+            .game-tag { background: var(--idn-gray); border: 1px solid var(--border-light); padding: 4px 10px; border-radius: 8px; font-size: 0.85rem; display: flex; gap: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+            .game-tag span { color: var(--text-muted); font-size: 0.8rem; font-weight: 700; } 
+            .game-tag strong { color: var(--idn-blue); font-family: 'Roboto Mono', monospace; font-weight: 800; }
+            .card-remark { margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--border-light); color: var(--text-muted); font-size: 0.9rem; line-height: 1.5; }
+            /* --------------------------------- */
+
             .mvp-badge-icon { top: 125px; font-size: 0.8rem; padding: 4px 12px; }
             .players-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 12px; }
             .player-img-container { height: 160px; }
@@ -495,6 +507,7 @@
                 <i class="fas fa-chevron-down" style="transition: transform 0.3s; font-size:1.2rem;"></i>
             </div>
         </button>
+
         <div class="games-panel" id="games-panel">
             <div class="games-grid">
                 <div class="game-card game-card-feature reveal">
@@ -511,6 +524,7 @@
                             <span class="gcf-pill ghost" id="rg-avg-pill">近 5 平均：—</span>
                         </div>
                     </div>
+
                     <div class="gcf-mid">
                         <div class="gcf-metric">
                             <div class="k">穩定度</div>
@@ -521,6 +535,7 @@
                             <div class="gcf-spark" id="rg-spark"></div>
                         </div>
                     </div>
+
                     <div class="game-actions">
                         <button class="btn-main" onclick="openMiniGame('reaction')" style="background:linear-gradient(135deg, var(--idn-gold), #a38142); color:#fff; box-shadow: 0 4px 15px rgba(197, 160, 89, 0.4);"><i class="fas fa-play"></i> 進入訓練</button>
                         <button class="btn-outline" onclick="resetMiniGame('reaction')" style="background:transparent; color:#fff; border-color:rgba(255,255,255,0.3);"><i class="fas fa-redo"></i> 清除紀錄</button>
@@ -716,7 +731,6 @@
         let deferredPrompt;
         let swReg = null;
         
-        // 全域儲存 MVP 星星數量
         window.globalMvpStats = {};
 
         function showToast(msg, type = 'info', durationMs = 2800) {
@@ -809,7 +823,8 @@
             clearTimeout(timer); try { return JSON.parse(await res.text()); } catch (e) { return { success: false, message: "回應格式錯誤" }; }
         }
         async function tryRestoreAdminSession() {
-            const pwd = localStorage.getItem('idn_admin_pwd'); if (!pwd) { setAdminUI(false); return false; }
+            const pwd = localStorage.getItem('idn_admin_pwd');
+            if (!pwd) { setAdminUI(false); return false; }
             if (!await isPasswordHashValid(pwd)) { localStorage.removeItem('idn_admin_pwd'); setAdminUI(false); return false; }
             setAdminUI(true); return true;
         }
@@ -821,7 +836,6 @@
             if (data.hero && data.hero.mvpUrl) { currentMvpEmbedUrl = getYouTubeEmbedUrl(data.hero.mvpUrl); document.getElementById('mvp-url-input').value = data.hero.mvpUrl; }
             currentMvpNumber = (data.hero && data.hero.mvpNumber) ? data.hero.mvpNumber : ""; document.getElementById('mvp-number-input').value = currentMvpNumber || "";
 
-            // 將後端傳來的 mvpStats 存入全域變數，以便印製星星
             window.globalMvpStats = data.mvpStats || {};
 
             allSchedules = data.schedules || []; renderScheduleTable();
@@ -851,30 +865,26 @@
             if (data && data.error && String(data.error).includes("unknown action")) { data = await fetchJson(GAS_URL + "?action=get_all_data"); applyCoreData(data); applyVideos(data.videos || []); return { mode: 'legacy', data }; }
             if (data.error) throw new Error(data.error); applyCoreData(data); return { mode: 'core', data };
         }
+        
         async function loadVideos() { 
             try { 
                 const out = await fetchJson(GAS_URL + "?action=get_videos"); 
                 
-                // 1. 處理影片區塊
                 const vids = Array.isArray(out) ? out : (out.videos || []);
                 applyVideos(vids); 
                 
-                // 2. 【分流】處理背景載入的 YouTube MVP 統計資料
                 if (out && out.mvpData) {
                     const autoMvp = out.mvpData.autoMvp;
                     const stats = out.mvpData.mvpStats;
                     
-                    // A. 自動補上最新 MVP (前提是：Excel 後台中沒有手動填寫覆蓋)
                     const manualUrl = document.getElementById('mvp-url-input').value;
                     if (!manualUrl && autoMvp && autoMvp.url) {
                         currentMvpEmbedUrl = getYouTubeEmbedUrl(autoMvp.url);
                         currentMvpNumber = autoMvp.number;
                     }
                     
-                    // B. 把統計結果寫入全域變數，並觸發「重新繪製球員卡片」
                     if (stats && Object.keys(stats).length > 0) {
                         window.globalMvpStats = stats;
-                        // 重新繪製玩家列表 (只會更新顯示區，不會影響已經在拖曳排陣中的 roster 勾選狀態)
                         renderPlayers(allPlayers);
                     }
                 }
@@ -882,6 +892,7 @@
                 document.getElementById('video-container').innerHTML = '<p style="color:#ef4444;text-align:center;width:100%;font-weight:700;">影片載入失敗</p>'; 
             } 
         }
+        
         async function loadAllData() { const core = await loadCoreData(); if (core.mode === 'core') await loadVideos(); }
 
         window.onload = async function () {
@@ -919,7 +930,6 @@
                 const actionBtns = `<div class="player-admin-overlay"><button class="btn-action-edit" onclick="editPlayer(${p.rowId})"><i class="fas fa-edit"></i></button><button class="btn-action-del" onclick="deletePlayer(${p.rowId})"><i class="fas fa-trash-alt"></i></button></div>`;
                 const badgeHtml = isMVP ? `<div class="mvp-badge-icon">Weekly MVP</div>` : '';
                 
-                // --- 繪製累積小星星 HTML ---
                 let starsHtml = '';
                 const starCount = window.globalMvpStats[p.number] || 0;
                 if (starCount > 0) {
@@ -990,11 +1000,31 @@
             const today = new Date(); today.setHours(0,0,0,0); const limit = new Date(today); limit.setMonth(today.getMonth() + (isViewAll ? 12 : 2));
             const list = allSchedules.filter(s => { const d = new Date(s.date.replace(/\//g,'-')); return d >= today && d <= limit; }).sort((a,b)=>new Date(a.date)-new Date(b.date));
             const desktop = document.getElementById('schedule-body-desktop'), mobile = document.getElementById('schedule-body-mobile');
-            if(list.length === 0) { desktop.innerHTML = `<tr><td colspan="9" style="padding:40px; color:var(--text-muted); font-weight:700; font-size:1.1rem;">近期無賽程安排</td></tr>`; mobile.innerHTML = `<p style="text-align:center; padding:30px; color:var(--text-muted); font-weight:700; font-size:1.1rem;">近期無賽程安排</p>`; return; }
+            
+            if(list.length === 0) { 
+                desktop.innerHTML = `<tr><td colspan="9" style="padding:40px; color:var(--text-muted); font-weight:700; font-size:1.1rem;">近期無賽程安排</td></tr>`; 
+                mobile.innerHTML = `<p style="text-align:center; padding:30px; color:var(--text-muted); font-weight:700; font-size:1.1rem;">近期無賽程安排</p>`; return; 
+            }
+            
             desktop.innerHTML = list.map(s => `<tr><td class="col-date">${s.date}</td><td class="time-cell">${s.times.meet||'-'}</td><td class="time-cell">${s.times.g1||'-'}</td><td class="time-cell">${s.times.g2||'-'}</td><td class="time-cell">${s.times.g3||''}</td><td class="time-cell">${s.times.g4||''}</td><td class="col-loc">${s.location1}${s.location2?`<br><span style="font-size:0.85rem;color:var(--text-muted); font-weight:600;">${s.location2}</span>`:''}</td><td class="remark-cell">${s.remark||''}</td><td><div class="admin-actions"><button class="btn-action-edit" onclick="editSchedule(${s.rowId})"><i class="fas fa-edit"></i></button><button class="btn-action-del" onclick="deleteSchedule(${s.rowId})"><i class="fas fa-trash-alt"></i></button></div></td></tr>`).join('');
+            
             mobile.innerHTML = list.map(s => {
                 let gHtml = ['g1','g2','g3','g4'].filter(k=>s.times[k]).map(k=>`<div class="game-tag"><span>${k.toUpperCase()}</span><strong>${s.times[k]}</strong></div>`).join('');
-                return `<div class="schedule-card reveal"><div class="card-header"><div class="card-date">${s.date}</div><div class="card-loc"><i class="fas fa-map-marker-alt" style="color:var(--idn-gold);"></i> ${s.location1}</div></div><div class="card-body"><div class="card-row"><div class="card-label">集合時間</div><div class="card-value">${s.times.meet||'-'}</div></div><div class="card-row" style="align-items:flex-start;"><div class="card-label">開賽時間</div><div class="games-compact">${gHtml||'-'}</div></div>${s.remark?`<div class="card-remark"><i class="fas fa-info-circle" style="color:var(--idn-blue);"></i> ${s.remark}</div>`:''}<div class="mobile-admin-actions admin-actions"><button class="btn-action-edit" onclick="editSchedule(${s.rowId})"><i class="fas fa-edit"></i> 編輯</button><button class="btn-action-del" onclick="deleteSchedule(${s.rowId})"><i class="fas fa-trash-alt"></i> 刪除</button></div></div></div>`;
+                return `<div class="schedule-card reveal">
+                    <div class="mobile-admin-actions admin-actions">
+                        <button class="btn-action-edit" onclick="editSchedule(${s.rowId})"><i class="fas fa-edit"></i></button>
+                        <button class="btn-action-del" onclick="deleteSchedule(${s.rowId})"><i class="fas fa-trash-alt"></i></button>
+                    </div>
+                    <div class="card-header">
+                        <div class="card-date">${s.date}</div>
+                        <div class="card-loc"><i class="fas fa-map-marker-alt" style="color:var(--idn-gold);"></i> ${s.location1}</div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-row"><div class="card-label">集合時間</div><div class="card-value">${s.times.meet||'-'}</div></div>
+                        <div class="card-row" style="align-items:flex-start;"><div class="card-label">開賽時間</div><div class="games-compact">${gHtml||'-'}</div></div>
+                        ${s.remark?`<div class="card-remark"><i class="fas fa-info-circle" style="color:var(--idn-blue);"></i> ${s.remark}</div>`:''}
+                    </div>
+                </div>`;
             }).join('');
             setTimeout(checkScroll, 50);
         }
@@ -1134,9 +1164,6 @@
             });
         }
 
-        // ==========================================
-        // 發布與檢視 先發陣容
-        // ==========================================
         function submitLineup() {
             if (isLineupPublished()) {
                 if (!confirm('要取消目前發布的先發陣容嗎？')) return;
@@ -1191,6 +1218,7 @@
 
         function openLineupView() {
             if (!currentLineupData) return;
+            
             localStorage.setItem('idn_last_seen_lineup', currentLineupData.timestamp.toString());
             document.getElementById('public-order-list-btn').classList.remove('new-update-alert');
             
@@ -1208,7 +1236,9 @@
                 const p = playerById[String(id)];
                 if (!p) return '';
                 if (Array.isArray(p.posRaw) && p.posRaw.length) return String(p.posRaw[0]).trim();
-                if (typeof p.positions === 'string' && p.positions.trim()) { return p.positions.split('/')[0].trim(); }
+                if (typeof p.positions === 'string' && p.positions.trim()) {
+                    return p.positions.split('/')[0].trim();
+                }
                 return '';
             };
 
