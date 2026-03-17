@@ -330,18 +330,20 @@
             section { padding: 4rem 5%; }
             .section-title { font-size: 1.9rem; margin-bottom: 2rem; }
             
+            /* --- 完美還原原本賽程表版型設計 --- */
             .schedule-table-container table, .schedule-table-container thead, .desktop-only { display: none !important; } 
             .mobile-only { display: block !important; }
             
             .schedule-mobile-list { display: flex; flex-direction: column; gap: 16px; width: 100%; }
             .schedule-card { background: var(--surface); border-radius: 16px; box-shadow: var(--card-shadow); border: 1px solid var(--border-light); overflow: hidden; width: 100%; position: relative; }
             
-            .mobile-admin-actions { position: absolute; top: 48px; right: 12px; background: rgba(255,255,255,0.95); padding: 6px; border-radius: 10px; z-index: 5; display: none; border: 1px solid var(--border-light); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-            body.is-admin .mobile-admin-actions { display: flex; gap: 8px; }
+            /* 編輯刪除按鈕：恢復相對定位並放置於卡片最下方，避免擋住球場地點 */
+            .mobile-admin-actions { position: relative; display: none; padding-top: 14px; margin-top: 14px; border-top: 1px dashed var(--border-light); justify-content: flex-end; gap: 10px; background: transparent; box-shadow: none; border-radius: 0; right: auto; top: auto; }
+            body.is-admin .mobile-admin-actions { display: flex; }
             
             .card-header { background: var(--idn-gray); border-bottom: 1px solid var(--border-light); padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; }
             .card-date { font-weight: 900; font-size: 1.15rem; color: var(--idn-blue); letter-spacing: 0.5px; } 
-            .card-loc { font-size: 0.95rem; color: var(--text-main); font-weight: 700; margin-right: 40px; display: flex; align-items: center; gap: 6px; }
+            .card-loc { font-size: 0.95rem; color: var(--text-main); font-weight: 700; display: flex; align-items: center; gap: 6px; }
             .card-body { padding: 18px; } 
             .card-row { display: flex; margin-bottom: 12px; align-items: center; font-size: 0.95rem; }
             .card-label { color: var(--text-muted); font-weight: 700; width: 65px; flex-shrink: 0; font-size: 0.9rem; } 
@@ -351,6 +353,7 @@
             .game-tag span { color: var(--text-muted); font-size: 0.8rem; font-weight: 700; } 
             .game-tag strong { color: var(--idn-blue); font-family: 'Roboto Mono', monospace; font-weight: 800; }
             .card-remark { margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--border-light); color: var(--text-muted); font-size: 0.9rem; line-height: 1.5; }
+            /* --------------------------------- */
 
             .mvp-badge-icon { top: 125px; font-size: 0.8rem; padding: 4px 12px; }
             .players-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 12px; }
@@ -674,7 +677,7 @@
                         <input type="text" id="mvp-url-input" placeholder="貼上完整 YouTube 網址...">
                     </div>
                     <div class="form-group" style="margin-top:24px;">
-                        <label style="color:var(--idn-gold);">本週 MVP 背號 <span style="font-size:0.85rem; font-weight:600; color:var(--text-muted);">(將會套用卡片發光特效)</span></label>
+                        <label style="color:var(--idn-gold);">本週 MVP 背號</label>
                         <input type="number" id="mvp-number-input" placeholder="輸入背號，例如 18 (輸入 0 取消)">
                     </div>
                     <button class="btn-main" onclick="submitMvpData()" id="btn-submit-mvp" style="width:100%; margin-top:30px; justify-content: center; padding:16px; font-size:1.1rem; background:linear-gradient(135deg, var(--idn-gold), #a38142); box-shadow: 0 4px 15px rgba(197, 160, 89, 0.4);">
@@ -748,11 +751,10 @@
 
     <script>
         // ==========================================
-        // 核心 JavaScript 邏輯
+        // 核心 JavaScript 邏輯 (已展開並清除非標準格式)
         // ==========================================
         let deferredPrompt;
         let swReg = null;
-        
         window.globalMvpStats = {};
 
         function showToast(msg, type = 'info', durationMs = 2800) {
@@ -770,8 +772,16 @@
         function hideSwUpdateBanner() { document.getElementById('sw-update-banner').style.display = 'none'; }
         function applySwUpdate() {
             const btn = document.getElementById('btn-apply-update');
-            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 更新中...'; }
-            if (swReg && swReg.waiting) { swReg.waiting.postMessage({ type: 'SKIP_WAITING' }); setTimeout(() => window.location.reload(), 500); } else { window.location.reload(); }
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 更新中...';
+            }
+            if (swReg && swReg.waiting) {
+                swReg.waiting.postMessage({ type: 'SKIP_WAITING' });
+                setTimeout(() => window.location.reload(), 500);
+            } else {
+                window.location.reload();
+            }
         }
 
         if ('serviceWorker' in navigator) {
@@ -782,44 +792,105 @@
                     swReg.addEventListener('updatefound', () => {
                         const newWorker = swReg.installing;
                         if (!newWorker) return;
-                        newWorker.addEventListener('statechange', () => { if (newWorker.state === 'installed' && navigator.serviceWorker.controller) { showSwUpdateBanner(); showToast('系統有新版本可更新', 'info', 3000); } });
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                showSwUpdateBanner();
+                                showToast('系統有新版本可更新', 'info', 3000);
+                            }
+                        });
                     });
-                    navigator.serviceWorker.addEventListener('controllerchange', () => { hideSwUpdateBanner(); window.location.reload(); });
-                } catch (err) { console.log('SW failed', err); }
+                    navigator.serviceWorker.addEventListener('controllerchange', () => {
+                        hideSwUpdateBanner();
+                        window.location.reload();
+                    });
+                } catch (err) {
+                    console.log('SW failed', err);
+                }
             });
         }
-        window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; const btn = document.getElementById('pwa-install-btn'); if (btn) btn.style.display = 'flex'; });
-        async function installPWA() { if (!deferredPrompt) return; deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt = null; document.getElementById('pwa-install-btn').style.display = 'none'; }
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            const btn = document.getElementById('pwa-install-btn');
+            if (btn) btn.style.display = 'flex';
+        });
+
+        async function installPWA() {
+            if (!deferredPrompt) return;
+            deferredPrompt.prompt();
+            await deferredPrompt.userChoice;
+            deferredPrompt = null;
+            document.getElementById('pwa-install-btn').style.display = 'none';
+        }
 
         const GAS_URL = "https://script.google.com/macros/s/AKfycbxAKNH-6eV-cwXZBqd_qyLe9MvCVQ6XELSfEzu8or7ds8niOAWRvxmNUnEfuls3Otd3dg/exec"; 
 
-        const LOADER_MILESTONES = [{ threshold: 0, text: '啟動系統引擎…' }, { threshold: 10, text: '檢查離線快取…' }, { threshold: 25, text: '同步最新賽程…' }, { threshold: 45, text: '載入球員名單…' }, { threshold: 65, text: '準備視覺元件…' }, { threshold: 85, text: '獲取影音索引…' }, { threshold: 95, text: '即將完成…' }, { threshold: 100, text: '進入主畫面' }];
+        const LOADER_MILESTONES = [
+            { threshold: 0, text: '啟動系統引擎…' },
+            { threshold: 10, text: '檢查離線快取…' },
+            { threshold: 25, text: '同步最新賽程…' },
+            { threshold: 45, text: '載入球員名單…' },
+            { threshold: 65, text: '準備視覺元件…' },
+            { threshold: 85, text: '獲取影音索引…' },
+            { threshold: 95, text: '即將完成…' },
+            { threshold: 100, text: '進入主畫面' }
+        ];
         let loaderProgress = 0, loaderInterval = null;
         const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
         function initMilestones() {
             const container = document.getElementById('milestones');
-            if (!container) return; container.innerHTML = '';
-            for (let i = 1; i < LOADER_MILESTONES.length - 1; i++) { const dot = document.createElement('div'); dot.className = 'milestone-dot'; container.appendChild(dot); }
+            if (!container) return;
+            container.innerHTML = '';
+            for (let i = 1; i < LOADER_MILESTONES.length - 1; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'milestone-dot';
+                container.appendChild(dot);
+            }
         }
+
         function updateStageText() {
-            const txtEl = document.getElementById('loading-stage-text'); if (!txtEl) return;
+            const txtEl = document.getElementById('loading-stage-text');
+            if (!txtEl) return;
             let current = LOADER_MILESTONES[0];
-            for (const m of LOADER_MILESTONES) if (loaderProgress >= m.threshold) current = m;
-            if (txtEl.dataset.current !== current.text) { txtEl.style.opacity = '0'; setTimeout(() => { txtEl.textContent = current.text; txtEl.dataset.current = current.text; txtEl.style.opacity = '1'; }, 150); }
-            document.querySelectorAll('.milestone-dot').forEach((d, i) => { if (loaderProgress >= LOADER_MILESTONES[i + 1].threshold) d.classList.add('active'); });
+            for (const m of LOADER_MILESTONES) {
+                if (loaderProgress >= m.threshold) current = m;
+            }
+            if (txtEl.dataset.current !== current.text) {
+                txtEl.style.opacity = '0';
+                setTimeout(() => {
+                    txtEl.textContent = current.text;
+                    txtEl.dataset.current = current.text;
+                    txtEl.style.opacity = '1';
+                }, 150);
+            }
+            document.querySelectorAll('.milestone-dot').forEach((d, i) => {
+                if (loaderProgress >= LOADER_MILESTONES[i + 1].threshold) d.classList.add('active');
+            });
         }
+
         function startLoaderProgress() {
-            initMilestones(); const bar = document.getElementById('loading-bar'); if (!bar) return;
+            initMilestones();
+            const bar = document.getElementById('loading-bar');
+            if (!bar) return;
             loaderInterval = setInterval(() => {
                 let inc = loaderProgress < 10 ? Math.random()*3+1 : loaderProgress < 25 ? Math.random()*2+0.5 : loaderProgress < 65 ? Math.random()*1.5+0.3 : loaderProgress < 85 ? Math.random()+0.1 : loaderProgress < 90 ? Math.random()*0.3 : 0;
-                loaderProgress = Math.min(loaderProgress + inc, 95); bar.style.width = loaderProgress + '%'; updateStageText();
+                loaderProgress = Math.min(loaderProgress + inc, 95);
+                bar.style.width = loaderProgress + '%';
+                updateStageText();
             }, 120);
         }
+
         function completeLoader() {
-            const bar = document.getElementById('loading-bar'); loaderProgress = 100; if (bar) bar.style.width = '100%'; updateStageText();
+            const bar = document.getElementById('loading-bar');
+            loaderProgress = 100;
+            if (bar) bar.style.width = '100%';
+            updateStageText();
             document.querySelectorAll('.milestone-dot').forEach(d => d.classList.add('active'));
-            if (!reduceMotion && typeof confetti === 'function') { confetti({ particleCount: 80, spread: 70, origin: { y: 0.8 }, colors: ['#00558F', '#c5a059', '#ffffff'], zIndex: 10000 }); }
+            if (!reduceMotion && typeof confetti === 'function') {
+                confetti({ particleCount: 80, spread: 70, origin: { y: 0.8 }, colors: ['#00558F', '#c5a059', '#ffffff'], zIndex: 10000 });
+            }
         }
         
         let allSchedules = [], allPlayers = [], posHeaders = [];
@@ -855,30 +926,64 @@
 
         async function isPasswordHashValid(pwd) {
             if (!pwd) return false;
+            // Ensure crypto API doesn't crash on insecure hosts without clear error
+            if (!window.crypto || !window.crypto.subtle) {
+                console.error("Crypto API is missing. Is the page loaded over HTTPS?");
+                return false;
+            }
             const msgBuffer = new TextEncoder().encode(pwd.trim() + PASSWORD_SALT);
             const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
             return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('') === ADMIN_HASH;
         }
 
         async function postJsonToGas(bodyObj, timeoutMs = 15000) {
-            const controller = new AbortController(); const timer = setTimeout(() => controller.abort(), timeoutMs);
-            const res = await fetch(GAS_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(bodyObj), signal: controller.signal });
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), timeoutMs);
+            const res = await fetch(GAS_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(bodyObj),
+                signal: controller.signal
+            });
             clearTimeout(timer);
-            try { return JSON.parse(await res.text()); } catch (e) { return { success: false, message: "回應格式錯誤" }; }
+            try {
+                return JSON.parse(await res.text());
+            } catch (e) {
+                return { success: false, message: "回應格式錯誤" };
+            }
         }
 
         async function tryRestoreAdminSession() {
             const pwd = localStorage.getItem('idn_admin_pwd');
-            if (!pwd) { setAdminUI(false); return false; }
-            if (!await isPasswordHashValid(pwd)) { localStorage.removeItem('idn_admin_pwd'); setAdminUI(false); return false; }
-            setAdminUI(true); return true;
+            if (!pwd) {
+                setAdminUI(false);
+                return false;
+            }
+            const isValid = await isPasswordHashValid(pwd);
+            if (!isValid) {
+                localStorage.removeItem('idn_admin_pwd');
+                setAdminUI(false);
+                return false;
+            }
+            setAdminUI(true);
+            return true;
         }
 
         function hideLoader() {
-            const loader = document.getElementById('loader'); if (!loader) return;
-            if (loaderInterval) { clearInterval(loaderInterval); loaderInterval = null; }
+            const loader = document.getElementById('loader');
+            if (!loader) return;
+            if (loaderInterval) {
+                clearInterval(loaderInterval);
+                loaderInterval = null;
+            }
             completeLoader();
-            setTimeout(() => { loader.style.opacity = '0'; setTimeout(() => { loader.style.display = 'none'; checkScroll(); }, 600); }, 600);
+            setTimeout(() => {
+                loader.style.opacity = '0';
+                setTimeout(() => {
+                    loader.style.display = 'none';
+                    checkScroll();
+                }, 600);
+            }, 600);
         }
 
         function applyCoreData(data) {
@@ -886,16 +991,26 @@
                 const heroUrl = convertDriveLink(data.hero.bgUrl);
                 setHeroImage(heroUrl);
             }
-            if (data.hero && data.hero.mvpUrl) { currentMvpEmbedUrl = getYouTubeEmbedUrl(data.hero.mvpUrl); document.getElementById('mvp-url-input').value = data.hero.mvpUrl; }
-            currentMvpNumber = (data.hero && data.hero.mvpNumber) ? data.hero.mvpNumber : ""; document.getElementById('mvp-number-input').value = currentMvpNumber || "";
+            if (data.hero && data.hero.mvpUrl) {
+                currentMvpEmbedUrl = getYouTubeEmbedUrl(data.hero.mvpUrl);
+                document.getElementById('mvp-url-input').value = data.hero.mvpUrl;
+            }
+            
+            currentMvpNumber = (data.hero && data.hero.mvpNumber) ? data.hero.mvpNumber : "";
+            document.getElementById('mvp-number-input').value = currentMvpNumber || "";
 
             window.globalMvpStats = data.mvpStats || {};
 
-            allSchedules = data.schedules || []; renderScheduleTable();
+            allSchedules = data.schedules || [];
+            renderScheduleTable();
+            
             document.getElementById('stadiums-list').innerHTML = (data.stadiums || []).map(l => `<option value="${l}">`).join('');
 
-            allPlayers = data.players || []; posHeaders = data.posHeaders || [];
-            renderPosCheckboxes(); renderPlayers(allPlayers);
+            allPlayers = data.players || [];
+            posHeaders = data.posHeaders || [];
+            
+            renderPosCheckboxes();
+            renderPlayers(allPlayers);
             renderRosterList(allPlayers);
             
             const lineupRaw = data.lineup || null;
@@ -904,30 +1019,51 @@
             } else {
                 currentLineupData = lineupRaw;
             }
+            
             updateOrderListBtnVisibility();
             updateLineupPublishButton();
         }
 
         function applyVideos(videos) {
-            const el = document.getElementById('video-container'); if (!el) return;
+            const el = document.getElementById('video-container');
+            if (!el) return;
+            
             if (videos && videos.length > 0) {
-                el.innerHTML = videos.map(v => `<div class="video-card reveal" onclick="playVideo('${v.id}')"><div class="thumb-wrapper"><img src="https://img.youtube.com/vi/${v.id}/mqdefault.jpg" class="video-thumb" loading="lazy"><div class="play-overlay"><i class="fas fa-play-circle play-icon-glow"></i></div></div><div class="video-title">${v.title}</div></div>`).join('');
+                el.innerHTML = videos.map(v => `
+                <div class="video-card reveal" onclick="playVideo('${v.id}')">
+                    <div class="thumb-wrapper">
+                        <img src="https://img.youtube.com/vi/${v.id}/mqdefault.jpg" class="video-thumb" loading="lazy">
+                        <div class="play-overlay"><i class="fas fa-play-circle play-icon-glow"></i></div>
+                    </div>
+                    <div class="video-title">${v.title}</div>
+                </div>`).join('');
                 setTimeout(checkScroll, 100);
-            } else { el.innerHTML = '<p style="color:rgba(255,255,255,0.6); text-align:center; width:100%; padding: 40px 0; font-weight:600;">暫無影片資料</p>'; }
+            } else {
+                el.innerHTML = '<p style="color:rgba(255,255,255,0.6); text-align:center; width:100%; padding: 40px 0; font-weight:600;">暫無影片資料</p>';
+            }
         }
 
-        async function fetchJson(url) { return await (await fetch(url, { cache: 'no-store' })).json(); }
+        async function fetchJson(url) {
+            const response = await fetch(url, { cache: 'no-store' });
+            return await response.json();
+        }
+
         async function loadCoreData() {
             let data = await fetchJson(GAS_URL + "?action=get_core_data");
-            if (data && data.error && String(data.error).includes("unknown action")) { data = await fetchJson(GAS_URL + "?action=get_all_data"); applyCoreData(data); applyVideos(data.videos || []); return { mode: 'legacy', data }; }
+            if (data && data.error && String(data.error).includes("unknown action")) {
+                data = await fetchJson(GAS_URL + "?action=get_all_data");
+                applyCoreData(data);
+                applyVideos(data.videos || []);
+                return { mode: 'legacy', data };
+            }
             if (data.error) throw new Error(data.error);
-            applyCoreData(data); return { mode: 'core', data };
+            applyCoreData(data);
+            return { mode: 'core', data };
         }
         
         async function loadVideos() { 
             try { 
                 const out = await fetchJson(GAS_URL + "?action=get_videos"); 
-                
                 const vids = Array.isArray(out) ? out : (out.videos || []);
                 applyVideos(vids); 
                 
@@ -951,28 +1087,83 @@
             } 
         }
 
-        async function loadAllData() { const core = await loadCoreData(); if (core.mode === 'core') await loadVideos(); }
+        async function loadAllData() {
+            const core = await loadCoreData();
+            if (core.mode === 'core') await loadVideos();
+        }
 
         window.onload = async function () {
             try {
+                try {
+                    const cached = localStorage.getItem('idn_cached_hero_bg');
+                    if (cached) document.getElementById('hero-section').style.backgroundImage = `url('${cached}')`;
+                } catch(e){}
+                
                 await tryRestoreAdminSession();
-                const core = await loadCoreData(); hideLoader();
+                const core = await loadCoreData();
+                hideLoader();
+                
                 if (core.mode === 'core') loadVideos();
                 initLineupBuilder(); 
-            } catch (e) { document.getElementById('loader').innerHTML = `<p style="color:#ef4444; font-weight:800; text-align:center;">系統載入失敗，請重整網頁。<br><small style="font-weight:500;">${e.message}</small></p>`; }
-            document.getElementById('player-search').addEventListener('input', e => { const term = e.target.value.toLowerCase(); renderPlayers(allPlayers.filter(p => p.name.toLowerCase().includes(term) || p.number.toString().includes(term))); });
-            window.addEventListener('popstate', closeAllModals); document.getElementById('admin-password').addEventListener('keydown', e => { if (e.key === 'Enter') verifyPassword(); }); initScrollSpy();
+                
+            } catch (e) {
+                console.error("System Initialization Failed:", e);
+                document.getElementById('loader').innerHTML = `
+                    <div style="text-align:center; padding: 20px;">
+                        <i class="fas fa-exclamation-triangle" style="font-size:3rem; color:#ef4444; margin-bottom:15px;"></i>
+                        <p style="color:#ef4444; font-weight:800; font-size:1.2rem; margin-bottom:10px;">系統載入失效，請重整網頁</p>
+                        <div style="background:#fef2f2; border:1px solid #fca5a5; padding:10px; border-radius:8px; color:#991b1b; font-size:0.9rem; text-align:left; word-break:break-all; max-width:80vw; margin:0 auto;">
+                            <strong>錯誤詳情：</strong><br>${e.message}
+                        </div>
+                    </div>`;
+            }
+            
+            document.getElementById('player-search').addEventListener('input', e => {
+                const term = e.target.value.toLowerCase();
+                renderPlayers(allPlayers.filter(p => p.name.toLowerCase().includes(term) || p.number.toString().includes(term)));
+            });
+            
+            window.addEventListener('popstate', closeAllModals);
+            document.getElementById('admin-password').addEventListener('keydown', e => {
+                if (e.key === 'Enter') verifyPassword();
+            });
+            initScrollSpy();
         };
 
         function getYouTubeEmbedUrl(url) {
             if (!url) return null;
-            if (url.includes("/clip/")) return `https://www.youtube-nocookie.com/embed/clip/${url.match(/\/clip\/([^/?]+)/)[1]}?autoplay=1&mute=1`;
+            if (url.includes("/clip/")) {
+                return `https://www.youtube-nocookie.com/embed/clip/${url.match(/\/clip\/([^/?]+)/)[1]}?autoplay=1&mute=1`;
+            }
             const m = url.match(/^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/);
             return (m && m[2].length === 11) ? `https://www.youtube.com/embed/${m[2]}?autoplay=1&mute=1` : null;
         }
-        function playVideo(id) { document.getElementById('yt-player').src = `https://www.youtube.com/embed/${id}?autoplay=1`; openModalCommon('video-modal'); }
-        function playMvpVideo() { if(!currentMvpEmbedUrl) { showToast("尚未設定 MVP 影片", "error"); return; } if (typeof confetti === "function") confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#00558F', '#c5a059', '#ffffff'], zIndex: 10000 }); document.getElementById('hero-video-frame').src = currentMvpEmbedUrl; openModalCommon('hero-video-overlay'); }
-        function convertDriveLink(url) { if (!url) return ""; if (url.includes("drive.google.com")) { const parts = url.match(/[-\w]{25,}/); if (parts) return `https://drive.google.com/thumbnail?id=${parts[0]}&sz=w1600`; } return url; }
+
+        function playVideo(id) {
+            document.getElementById('yt-player').src = `https://www.youtube.com/embed/${id}?autoplay=1`;
+            openModalCommon('video-modal');
+        }
+
+        function playMvpVideo() {
+            if (!currentMvpEmbedUrl) {
+                showToast("尚未設定 MVP 影片", "error");
+                return;
+            }
+            if (typeof confetti === "function") {
+                confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#00558F', '#c5a059', '#ffffff'], zIndex: 10000 });
+            }
+            document.getElementById('hero-video-frame').src = currentMvpEmbedUrl;
+            openModalCommon('hero-video-overlay');
+        }
+
+        function convertDriveLink(url) {
+            if (!url) return "";
+            if (url.includes("drive.google.com")) {
+                const parts = url.match(/[-\w]{25,}/);
+                if (parts) return `https://drive.google.com/thumbnail?id=${parts[0]}&sz=w1600`;
+            }
+            return url;
+        }
         
         function setHeroImage(url) {
             const img = document.getElementById('hero-bg-img');
@@ -989,16 +1180,49 @@
         }
         
         function handleImageUpload(input) {
-            const file = input.files[0]; if (!file) return; const reader = new FileReader();
-            reader.onload = e => { const img = new Image(); img.src = e.target.result; img.onload = () => { const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d'); let w = img.width, h = img.height; if (w > 600) { h *= 600/w; w = 600; } canvas.width = w; canvas.height = h; ctx.drawImage(img, 0, 0, w, h); const b64 = canvas.toDataURL('image/jpeg', 0.8); document.getElementById('p-photo-preview').src = b64; document.getElementById('p-photo-preview').style.display = 'block'; document.getElementById('p-photo-placeholder').style.display = 'none'; document.getElementById('p-photo-base64').value = b64; }; };
+            const file = input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = e => {
+                const img = new Image();
+                img.src = e.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    let w = img.width, h = img.height;
+                    if (w > 600) {
+                        h *= 600 / w;
+                        w = 600;
+                    }
+                    canvas.width = w;
+                    canvas.height = h;
+                    ctx.drawImage(img, 0, 0, w, h);
+                    const b64 = canvas.toDataURL('image/jpeg', 0.8);
+                    document.getElementById('p-photo-preview').src = b64;
+                    document.getElementById('p-photo-preview').style.display = 'block';
+                    document.getElementById('p-photo-placeholder').style.display = 'none';
+                    document.getElementById('p-photo-base64').value = b64;
+                };
+            };
             reader.readAsDataURL(file);
         }
 
-        function renderPosCheckboxes() { document.getElementById('pos-checks-container').innerHTML = posHeaders.length > 0 ? posHeaders.map(pos => `<label class="pos-check-item"><input type="checkbox" value="${pos}" class="pos-checkbox"> ${pos}</label>`).join('') : '<span style="color:var(--text-muted); font-size:0.95rem; font-weight:600;">無守備資料</span>'; }
+        function renderPosCheckboxes() {
+            const container = document.getElementById('pos-checks-container');
+            if (posHeaders.length > 0) {
+                container.innerHTML = posHeaders.map(pos => `<label class="pos-check-item"><input type="checkbox" value="${pos}" class="pos-checkbox"> ${pos}</label>`).join('');
+            } else {
+                container.innerHTML = '<span style="color:var(--text-muted); font-size:0.95rem; font-weight:600;">無守備資料</span>';
+            }
+        }
 
         function renderPlayers(players) {
             const pContainer = document.getElementById('players-container');
-            if(players.length === 0) { pContainer.innerHTML = '<p style="grid-column:1/-1; text-align:center; color:var(--text-muted); margin-top:20px; font-weight:600; font-size:1.1rem;">找不到球員</p>'; return; }
+            if (players.length === 0) {
+                pContainer.innerHTML = '<p style="grid-column:1/-1; text-align:center; color:var(--text-muted); margin-top:20px; font-weight:600; font-size:1.1rem;">找不到球員</p>';
+                return;
+            }
+            
             pContainer.innerHTML = players.map(p => {
                 const isMVP = (currentMvpNumber && p.number == currentMvpNumber);
                 const photoUrl = convertDriveLink(p.photo);
@@ -1022,81 +1246,202 @@
                         ${photoUrl ? `<img src="${photoUrl}" class="player-img" loading="lazy">` : `<i class="fas fa-user fa-4x" style="color:var(--border-light);"></i>`}
                         ${starsHtml}
                     </div>
-                    <div class="player-info"><h3 class="player-name-full">#${p.number} ${p.name}</h3><span class="player-pos">${p.positions || '-'}</span></div>
+                    <div class="player-info">
+                        <h3 class="player-name-full">#${p.number} ${p.name}</h3>
+                        <span class="player-pos">${p.positions || '-'}</span>
+                    </div>
                 </div>`;
             }).join('');
+            
             setTimeout(checkScroll, 50);
         }
 
         function editPlayer(rowId) {
-            const p = allPlayers.find(x => String(x.rowId) === String(rowId)); if (!p) return;
-            document.getElementById('p-form-title').innerText = '編輯球員'; document.getElementById('p-rowId').value = p.rowId; document.getElementById('p-name').value = p.name; document.getElementById('p-number').value = p.number; document.getElementById('p-photo-url').value = p.photo || ''; document.getElementById('p-photo-base64').value = '';
-            if (p.photo) { document.getElementById('p-photo-preview').src = convertDriveLink(p.photo); document.getElementById('p-photo-preview').style.display = 'block'; document.getElementById('p-photo-placeholder').style.display = 'none'; } else { document.getElementById('p-photo-preview').style.display = 'none'; document.getElementById('p-photo-placeholder').style.display = 'block'; }
-            const selected = Array.isArray(p.posRaw) ? p.posRaw : (p.positions ? p.positions.split('/').map(s => s.trim()) : []); document.querySelectorAll('.pos-checkbox').forEach(cb => cb.checked = selected.includes(cb.value));
+            const p = allPlayers.find(x => String(x.rowId) === String(rowId));
+            if (!p) return;
+            
+            document.getElementById('p-form-title').innerText = '編輯球員';
+            document.getElementById('p-rowId').value = p.rowId;
+            document.getElementById('p-name').value = p.name;
+            document.getElementById('p-number').value = p.number;
+            document.getElementById('p-photo-url').value = p.photo || '';
+            document.getElementById('p-photo-base64').value = '';
+            
+            if (p.photo) {
+                document.getElementById('p-photo-preview').src = convertDriveLink(p.photo);
+                document.getElementById('p-photo-preview').style.display = 'block';
+                document.getElementById('p-photo-placeholder').style.display = 'none';
+            } else {
+                document.getElementById('p-photo-preview').style.display = 'none';
+                document.getElementById('p-photo-placeholder').style.display = 'block';
+            }
+            
+            let selectedPositions = [];
+            if (Array.isArray(p.posRaw)) {
+                selectedPositions = p.posRaw;
+            } else if (p.positions) {
+                selectedPositions = p.positions.split('/').map(function(s) { return s.trim(); });
+            }
+            
+            document.querySelectorAll('.pos-checkbox').forEach(function(cb) {
+                cb.checked = selectedPositions.includes(cb.value);
+            });
+            
             openAdminModalAuth('player');
         }
 
-        function deletePlayer(rowId) { const p = allPlayers.find(x => String(x.rowId) === String(rowId)); if (confirm(`確定刪除 ${p.name} #${p.number}？\n此操作無法復原。`)) sendToGas("delete_player", { rowId: rowId }, null, null); }
+        function deletePlayer(rowId) {
+            const p = allPlayers.find(x => String(x.rowId) === String(rowId));
+            if (confirm(`確定刪除 ${p.name} #${p.number}？\n此操作無法復原。`)) {
+                sendToGas("delete_player", { rowId: rowId }, null, null);
+            }
+        }
 
-        function openModalCommon(modalId) { const m = document.getElementById(modalId); m.style.display = 'flex'; m.style.opacity = 0; requestAnimationFrame(() => { m.style.transition = 'opacity 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)'; m.style.opacity = 1; }); history.pushState({modal: true}, null, location.href); isModalOpen = true; }
-        function closeAllModals() { document.querySelectorAll('.modal, #hero-video-overlay').forEach(m => { m.style.opacity = 0; setTimeout(() => m.style.display = 'none', 300); }); document.getElementById('hero-video-frame').src=""; document.getElementById('yt-player').src=""; isModalOpen = false; resetForm('schedule'); resetForm('player'); }
-        function userCloseModal() { if (isModalOpen) history.back(); }
-        function openAdminModal(tab) { resetForm(tab); openAdminModalAuth(tab); }
+        function openModalCommon(modalId) {
+            const m = document.getElementById(modalId);
+            m.style.display = 'flex';
+            m.style.opacity = 0;
+            requestAnimationFrame(() => {
+                m.style.transition = 'opacity 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                m.style.opacity = 1;
+            });
+            history.pushState({modal: true}, null, location.href);
+            isModalOpen = true;
+        }
+
+        function closeAllModals() {
+            document.querySelectorAll('.modal, #hero-video-overlay').forEach(m => {
+                m.style.opacity = 0;
+                setTimeout(() => m.style.display = 'none', 300);
+            });
+            document.getElementById('hero-video-frame').src = "";
+            document.getElementById('yt-player').src = "";
+            isModalOpen = false;
+            resetForm('schedule');
+            resetForm('player');
+        }
+
+        function userCloseModal() {
+            if (isModalOpen) history.back();
+        }
+
+        function openAdminModal(tab) {
+            resetForm(tab);
+            openAdminModalAuth(tab);
+        }
         
         async function openAdminModalAuth(tab) {
-            adminTargetTab = tab || 'schedule'; openModalCommon('admin-modal'); const pwd = localStorage.getItem('idn_admin_pwd');
-            if (pwd && await isPasswordHashValid(pwd)) { setAdminUI(true); document.getElementById('password-step').style.display = 'none'; document.getElementById('admin-panel').style.display = 'block'; switchTab(adminTargetTab); } 
-            else { setAdminUI(false); document.getElementById('password-step').style.display = 'block'; document.getElementById('admin-panel').style.display = 'none'; document.getElementById('admin-password').value = ''; }
+            adminTargetTab = tab || 'schedule';
+            openModalCommon('admin-modal');
+            const pwd = localStorage.getItem('idn_admin_pwd');
+            
+            if (pwd && await isPasswordHashValid(pwd)) {
+                setAdminUI(true);
+                document.getElementById('password-step').style.display = 'none';
+                document.getElementById('admin-panel').style.display = 'block';
+                switchTab(adminTargetTab);
+            } else {
+                setAdminUI(false);
+                document.getElementById('password-step').style.display = 'block';
+                document.getElementById('admin-panel').style.display = 'none';
+                document.getElementById('admin-password').value = '';
+            }
         }
 
         async function verifyPassword() {
-            const pwd = document.getElementById('admin-password').value.trim(); if (!pwd) { showToast('請輸入密碼', 'error'); return; }
-            if (!await isPasswordHashValid(pwd)) { showToast('密碼錯誤，請重試', 'error'); return; }
-            localStorage.setItem('idn_admin_pwd', pwd); setAdminUI(true); document.getElementById('password-step').style.display = 'none'; document.getElementById('admin-panel').style.display = 'block'; switchTab(adminTargetTab); showToast('身分解鎖成功', 'success');
+            const pwd = document.getElementById('admin-password').value.trim();
+            if (!pwd) {
+                showToast('請輸入密碼', 'error');
+                return;
+            }
+            if (!await isPasswordHashValid(pwd)) {
+                showToast('密碼錯誤，請重試', 'error');
+                return;
+            }
+            localStorage.setItem('idn_admin_pwd', pwd);
+            setAdminUI(true);
+            document.getElementById('password-step').style.display = 'none';
+            document.getElementById('admin-panel').style.display = 'block';
+            switchTab(adminTargetTab);
+            showToast('身分解鎖成功', 'success');
         }
 
-        function logoutAdmin() { localStorage.removeItem('idn_admin_pwd'); setAdminUI(false); closeAllModals(); showToast('已安全登出', 'info'); }
+        function logoutAdmin() {
+            localStorage.removeItem('idn_admin_pwd');
+            setAdminUI(false);
+            closeAllModals();
+            showToast('已安全登出', 'info');
+        }
 
-        function switchTab(tab) { document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active')); document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none'); document.querySelector(`.admin-tab[onclick="switchTab('${tab}')"]`).classList.add('active'); document.getElementById(`tab-${tab}`).style.display = 'block'; }
+        function switchTab(tab) {
+            document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+            document.querySelector(`.admin-tab[onclick="switchTab('${tab}')"]`).classList.add('active');
+            document.getElementById(`tab-${tab}`).style.display = 'block';
+        }
 
         function resetForm(tab) {
-            if(tab === 'schedule') { document.getElementById('m-rowId').value = ""; document.getElementById('form-title').innerText = '新增賽程'; ['m-date','m-meet','m-g1','m-g2','m-g3','m-g4','m-loc1','m-loc2','m-remark'].forEach(id => document.getElementById(id).value=""); } 
-            else if (tab === 'player') { document.getElementById('p-rowId').value = ""; document.getElementById('p-form-title').innerText = '新增球員'; ['p-name','p-number','p-photo-url','p-photo-base64'].forEach(id => document.getElementById(id).value=""); document.getElementById('p-photo-preview').style.display = 'none'; document.getElementById('p-photo-placeholder').style.display = 'block'; document.querySelectorAll('.pos-checkbox').forEach(cb => cb.checked = false); }
+            if (tab === 'schedule') {
+                document.getElementById('m-rowId').value = "";
+                document.getElementById('form-title').innerText = '新增賽程';
+                ['m-date','m-meet','m-g1','m-g2','m-g3','m-g4','m-loc1','m-loc2','m-remark'].forEach(id => document.getElementById(id).value="");
+            } else if (tab === 'player') {
+                document.getElementById('p-rowId').value = "";
+                document.getElementById('p-form-title').innerText = '新增球員';
+                ['p-name','p-number','p-photo-url','p-photo-base64'].forEach(id => document.getElementById(id).value="");
+                document.getElementById('p-photo-preview').style.display = 'none';
+                document.getElementById('p-photo-placeholder').style.display = 'block';
+                document.querySelectorAll('.pos-checkbox').forEach(cb => cb.checked = false);
+            }
         }
         
         async function sendToGas(action, payload, btnId, loadingText) {
-            const pwd = localStorage.getItem('idn_admin_pwd'); if (!pwd) { showToast('無效的憑證，請重新登入', 'error'); return; }
-            const btn = btnId ? document.getElementById(btnId) : null; const origText = btn ? btn.innerHTML : ''; if (btn) { btn.disabled = true; btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${loadingText}`; }
+            const pwd = localStorage.getItem('idn_admin_pwd');
+            if (!pwd) {
+                showToast('無效的憑證，請重新登入', 'error');
+                return;
+            }
+            const btn = btnId ? document.getElementById(btnId) : null;
+            const origText = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${loadingText}`;
+            }
+            
             try { 
                 const res = await postJsonToGas({ action, password: pwd, payload }); 
                 if (res.success) { 
                     let msg = res.message || '資料已成功儲存'; 
-                    if (action === 'update_lineup' && payload && payload.cancel === true) msg = '已取消目前發布'; 
+                    if (action === 'update_lineup' && payload && payload.cancel === true) {
+                        msg = '已取消目前發布';
+                    }
                     showToast(msg, 'success'); 
                     await loadAllData(); 
-                    if (action !== "force_refresh_yt") closeAllModals(); // 刷新YT不用關閉視窗
+                    if (action !== "force_refresh_yt") closeAllModals();
                 } else { 
                     showToast(res.message || '操作失敗', 'error'); 
                 } 
             } catch (e) { 
                 showToast('網路連線異常，請稍後再試', 'error'); 
             } finally { 
-                if (btn) { btn.disabled = false; btn.innerHTML = origText; } 
-                if (btnId === 'btn-submit-lineup') { updateLineupPublishButton(); } 
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = origText;
+                } 
+                if (btnId === 'btn-submit-lineup') {
+                    updateLineupPublishButton();
+                } 
             }
         }
 
-        // 強制刷新 YouTube
         function forceRefreshYT() {
             if(!confirm('這將清除快取並重新掃描 YouTube 頻道，確定要執行嗎？')) return;
             sendToGas("force_refresh_yt", {}, null, "刷新中...");
         }
 
-        // 打開 MVP 榮譽榜
         function openMvpLeaderboard() {
             const stats = window.globalMvpStats || {};
             const listEl = document.getElementById('mvp-leaderboard-list');
-            
             const sortedStats = Object.entries(stats).sort((a, b) => b[1] - a[1]);
             
             if (sortedStats.length === 0) {
@@ -1133,19 +1478,30 @@
         }
 
         function renderScheduleTable() {
-            const today = new Date(); today.setHours(0,0,0,0); const limit = new Date(today); limit.setMonth(today.getMonth() + (isViewAll ? 12 : 2));
-            const list = allSchedules.filter(s => { const d = new Date(s.date.replace(/\//g,'-')); return d >= today && d <= limit; }).sort((a,b)=>new Date(a.date)-new Date(b.date));
-            const desktop = document.getElementById('schedule-body-desktop'), mobile = document.getElementById('schedule-body-mobile');
-            if(list.length === 0) { desktop.innerHTML = `<tr><td colspan="9" style="padding:40px; color:var(--text-muted); font-weight:700; font-size:1.1rem;">近期無賽程安排</td></tr>`; mobile.innerHTML = `<p style="text-align:center; padding:30px; color:var(--text-muted); font-weight:700; font-size:1.1rem;">近期無賽程安排</p>`; return; }
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            const limit = new Date(today);
+            limit.setMonth(today.getMonth() + (isViewAll ? 12 : 2));
+            
+            const list = allSchedules.filter(s => {
+                const d = new Date(s.date.replace(/\//g,'-'));
+                return d >= today && d <= limit;
+            }).sort((a,b)=>new Date(a.date)-new Date(b.date));
+            
+            const desktop = document.getElementById('schedule-body-desktop');
+            const mobile = document.getElementById('schedule-body-mobile');
+            
+            if(list.length === 0) {
+                desktop.innerHTML = `<tr><td colspan="9" style="padding:40px; color:var(--text-muted); font-weight:700; font-size:1.1rem;">近期無賽程安排</td></tr>`;
+                mobile.innerHTML = `<p style="text-align:center; padding:30px; color:var(--text-muted); font-weight:700; font-size:1.1rem;">近期無賽程安排</p>`;
+                return;
+            }
+            
             desktop.innerHTML = list.map(s => `<tr><td class="col-date">${s.date}</td><td class="time-cell">${s.times.meet||'-'}</td><td class="time-cell">${s.times.g1||'-'}</td><td class="time-cell">${s.times.g2||'-'}</td><td class="time-cell">${s.times.g3||''}</td><td class="time-cell">${s.times.g4||''}</td><td class="col-loc">${s.location1}${s.location2?`<br><span style="font-size:0.85rem;color:var(--text-muted); font-weight:600;">${s.location2}</span>`:''}</td><td class="remark-cell">${s.remark||''}</td><td><div class="admin-actions"><button class="btn-action-edit" onclick="editSchedule(${s.rowId})"><i class="fas fa-edit"></i></button><button class="btn-action-del" onclick="deleteSchedule(${s.rowId})"><i class="fas fa-trash-alt"></i></button></div></td></tr>`).join('');
             
             mobile.innerHTML = list.map(s => {
                 let gHtml = ['g1','g2','g3','g4'].filter(k=>s.times[k]).map(k=>`<div class="game-tag"><span>${k.toUpperCase()}</span><strong>${s.times[k]}</strong></div>`).join('');
                 return `<div class="schedule-card reveal">
-                    <div class="mobile-admin-actions admin-actions">
-                        <button class="btn-action-edit" onclick="editSchedule(${s.rowId})"><i class="fas fa-edit"></i></button>
-                        <button class="btn-action-del" onclick="deleteSchedule(${s.rowId})"><i class="fas fa-trash-alt"></i></button>
-                    </div>
                     <div class="card-header">
                         <div class="card-date">${s.date}</div>
                         <div class="card-loc"><i class="fas fa-map-marker-alt" style="color:var(--idn-gold);"></i> ${s.location1}</div>
@@ -1154,68 +1510,250 @@
                         <div class="card-row"><div class="card-label">集合時間</div><div class="card-value">${s.times.meet||'-'}</div></div>
                         <div class="card-row" style="align-items:flex-start;"><div class="card-label">開賽時間</div><div class="games-compact">${gHtml||'-'}</div></div>
                         ${s.remark?`<div class="card-remark"><i class="fas fa-info-circle" style="color:var(--idn-blue);"></i> ${s.remark}</div>`:''}
+                        
+                        <div class="mobile-admin-actions admin-actions">
+                            <button class="btn-action-edit" onclick="editSchedule(${s.rowId})"><i class="fas fa-edit"></i> 編輯</button>
+                            <button class="btn-action-del" onclick="deleteSchedule(${s.rowId})"><i class="fas fa-trash-alt"></i> 刪除</button>
+                        </div>
                     </div>
                 </div>`;
             }).join('');
             setTimeout(checkScroll, 50);
         }
-        function toggleScheduleView() { isViewAll = !isViewAll; document.getElementById('btn-see-more').innerHTML = isViewAll ? '<i class="fas fa-compress-arrows-alt"></i> 顯示近期賽程' : '<i class="fas fa-list"></i> 查看所有賽程'; renderScheduleTable(); }
-        window.editSchedule = function(rowId) { const item = allSchedules.find(s=>s.rowId==rowId); if(!item)return; document.getElementById('m-rowId').value=rowId; document.getElementById('form-title').innerText='修改賽程'; document.getElementById('m-date').value=item.date.replace(/\//g,'-'); document.getElementById('m-meet').value=item.times.meet; ['g1','g2','g3','g4'].forEach(k => document.getElementById('m-'+k).value=item.times[k]?item.times[k].replace(':',''):''); document.getElementById('m-loc1').value=item.location1; document.getElementById('m-loc2').value=item.location2; document.getElementById('m-remark').value=item.remark; openAdminModalAuth('schedule'); };
-        window.deleteSchedule = function(rowId) { if(confirm('確定刪除此賽程？')) sendToGas('delete_schedule', {rowId:rowId}); };
-        function submitSchedule() { const payload = { rowId:document.getElementById('m-rowId').value, date:document.getElementById('m-date').value, location1:document.getElementById('m-loc1').value, location2:document.getElementById('m-loc2').value, meet:document.getElementById('m-meet').value, g1:document.getElementById('m-g1').value, g2:document.getElementById('m-g2').value, g3:document.getElementById('m-g3').value, g4:document.getElementById('m-g4').value, remark:document.getElementById('m-remark').value }; if(!payload.date || !payload.location1) { showToast('日期與主球場為必填', 'error'); return; } sendToGas(payload.rowId?'update_schedule':'add_schedule', payload, "btn-submit-schedule", "儲存中..."); }
-        function submitMvpData() { sendToGas("update_mvp", { url: document.getElementById('mvp-url-input').value, number: document.getElementById('mvp-number-input').value }, "btn-submit-mvp", "更新中..."); }
-        function submitPlayer() { const name = document.getElementById('p-name').value, number = document.getElementById('p-number').value; if(!name || !number) { showToast('姓名與背號為必填', 'error'); return; } let pos = []; document.querySelectorAll('.pos-checkbox:checked').forEach(cb => pos.push(cb.value)); sendToGas("save_player", { rowId: document.getElementById('p-rowId').value, name: name, number: number, photoUrl: document.getElementById('p-photo-url').value, newImageBase64: document.getElementById('p-photo-base64').value, positions: pos }, "btn-submit-player", "處理中..."); }
 
-        window.onclick = function(e) { if(e.target.classList.contains('modal')) userCloseModal(); }
-        window.addEventListener('scroll', () => { const btn = document.getElementById('back-to-top'); if (btn) btn.classList.toggle('show', window.scrollY > 400); }, { passive: true });
-        function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
-        function checkScroll() { document.querySelectorAll(".reveal").forEach(el => { if (el.getBoundingClientRect().top < window.innerHeight - 80) el.classList.add("active"); }); }
+        function toggleScheduleView() {
+            isViewAll = !isViewAll;
+            document.getElementById('btn-see-more').innerHTML = isViewAll ? '<i class="fas fa-compress-arrows-alt"></i> 顯示近期賽程' : '<i class="fas fa-list"></i> 查看所有賽程';
+            renderScheduleTable();
+        }
+
+        window.editSchedule = function(rowId) {
+            const item = allSchedules.find(s=>s.rowId==rowId);
+            if(!item) return;
+            document.getElementById('m-rowId').value=rowId;
+            document.getElementById('form-title').innerText='修改賽程';
+            document.getElementById('m-date').value=item.date.replace(/\//g,'-');
+            document.getElementById('m-meet').value=item.times.meet;
+            ['g1','g2','g3','g4'].forEach(k => document.getElementById('m-'+k).value=item.times[k]?item.times[k].replace(':',''):'');
+            document.getElementById('m-loc1').value=item.location1;
+            document.getElementById('m-loc2').value=item.location2;
+            document.getElementById('m-remark').value=item.remark;
+            openAdminModalAuth('schedule');
+        };
+
+        window.deleteSchedule = function(rowId) {
+            if(confirm('確定刪除此賽程？')) sendToGas('delete_schedule', {rowId:rowId});
+        };
+
+        function submitSchedule() {
+            const payload = {
+                rowId: document.getElementById('m-rowId').value,
+                date: document.getElementById('m-date').value,
+                location1: document.getElementById('m-loc1').value,
+                location2: document.getElementById('m-loc2').value,
+                meet: document.getElementById('m-meet').value,
+                g1: document.getElementById('m-g1').value,
+                g2: document.getElementById('m-g2').value,
+                g3: document.getElementById('m-g3').value,
+                g4: document.getElementById('m-g4').value,
+                remark: document.getElementById('m-remark').value
+            };
+            if (!payload.date || !payload.location1) {
+                showToast('日期與主球場為必填', 'error');
+                return;
+            }
+            sendToGas(payload.rowId ? 'update_schedule' : 'add_schedule', payload, "btn-submit-schedule", "儲存中...");
+        }
+
+        function submitMvpData() {
+            sendToGas("update_mvp", {
+                url: document.getElementById('mvp-url-input').value,
+                number: document.getElementById('mvp-number-input').value
+            }, "btn-submit-mvp", "更新中...");
+        }
+
+        function submitPlayer() {
+            const name = document.getElementById('p-name').value;
+            const number = document.getElementById('p-number').value;
+            if(!name || !number) {
+                showToast('姓名與背號為必填', 'error');
+                return;
+            }
+            let pos = [];
+            document.querySelectorAll('.pos-checkbox:checked').forEach(cb => pos.push(cb.value));
+            
+            sendToGas("save_player", {
+                rowId: document.getElementById('p-rowId').value,
+                name: name,
+                number: number,
+                photoUrl: document.getElementById('p-photo-url').value,
+                newImageBase64: document.getElementById('p-photo-base64').value,
+                positions: pos
+            }, "btn-submit-player", "處理中...");
+        }
+
+        window.onclick = function(e) {
+            if (e.target.classList.contains('modal')) userCloseModal();
+        }
+
+        window.addEventListener('scroll', () => {
+            const btn = document.getElementById('back-to-top');
+            if (btn) btn.classList.toggle('show', window.scrollY > 400);
+        }, { passive: true });
+
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function checkScroll() {
+            document.querySelectorAll(".reveal").forEach(el => {
+                if (el.getBoundingClientRect().top < window.innerHeight - 80) el.classList.add("active");
+            });
+        }
+
         window.addEventListener("scroll", checkScroll, {passive:true});
 
         function initScrollSpy() {
-            const navLinks = { schedule: document.getElementById('nav-schedule'), videos: document.getElementById('nav-videos'), players: document.getElementById('nav-players'), games: document.getElementById('nav-games') };
+            const navLinks = {
+                schedule: document.getElementById('nav-schedule'),
+                videos: document.getElementById('nav-videos'),
+                players: document.getElementById('nav-players'),
+                games: document.getElementById('nav-games')
+            };
             window.addEventListener('scroll', () => {
-                let current = ''; document.querySelectorAll('section:not(.admin-only)').forEach(sec => { if (window.scrollY >= (sec.offsetTop - 150)) current = sec.getAttribute('id'); });
-                Object.values(navLinks).forEach(l => l && l.classList.remove('active')); if (current && navLinks[current]) navLinks[current].classList.add('active');
+                let current = '';
+                document.querySelectorAll('section:not(.admin-only)').forEach(sec => {
+                    if (window.scrollY >= (sec.offsetTop - 150)) current = sec.getAttribute('id');
+                });
+                Object.values(navLinks).forEach(l => l && l.classList.remove('active'));
+                if (current && navLinks[current]) navLinks[current].classList.add('active');
             }, {passive:true});
         }
 
         document.addEventListener('DOMContentLoaded', () => {
             startLoaderProgress();
-            const btn = document.getElementById('games-toggle'), pnl = document.getElementById('games-panel');
-            if (btn && pnl) { btn.addEventListener('click', () => { const isOpen = btn.getAttribute('aria-expanded') === 'true'; btn.setAttribute('aria-expanded', !isOpen); pnl.classList.toggle('open', !isOpen); if (!isOpen) setTimeout(checkScroll, 100); }); }
-            document.querySelectorAll('.nav-links a').forEach(a => { a.addEventListener('click', e => { e.preventDefault(); const t = document.querySelector(a.getAttribute('href')); if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' }); }); });
+            const btn = document.getElementById('games-toggle');
+            const pnl = document.getElementById('games-panel');
+            if (btn && pnl) {
+                btn.addEventListener('click', () => {
+                    const isOpen = btn.getAttribute('aria-expanded') === 'true';
+                    btn.setAttribute('aria-expanded', !isOpen);
+                    pnl.classList.toggle('open', !isOpen);
+                    if (!isOpen) setTimeout(checkScroll, 100);
+                });
+            }
+            document.querySelectorAll('.nav-links a').forEach(a => {
+                a.addEventListener('click', e => {
+                    e.preventDefault();
+                    const t = document.querySelector(a.getAttribute('href'));
+                    if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                });
+            });
         });
 
         // --- 小遊戲模組 ---
         (function(){
             const LS = { reactionBest: 'idn_game_reaction_best', reactionRuns: 'idn_game_reaction_runs' };
-            function fmtMs(v){ return (v===null||v===''||isNaN(v)) ? '—' : `${Math.round(v)} ms`; }
-            function getRuns(){ try{return JSON.parse(localStorage.getItem(LS.reactionRuns)||'[]').filter(x=>x>0&&x<5000);}catch(e){return [];} }
-            function setRuns(arr){ try{localStorage.setItem(LS.reactionRuns, JSON.stringify(arr.slice(-20)));}catch(e){} }
-            function updateGamesSummary(){
-                const runs = getRuns(), best = localStorage.getItem(LS.reactionBest); const avg5 = runs.slice(-5).reduce((a,b)=>a+b,0)/Math.max(1,runs.slice(-5).length);
-                document.getElementById('best-reaction').textContent = `最佳：${fmtMs(best)}`; document.getElementById('rg-last-pill').textContent = `最近：${runs.length?fmtMs(runs[runs.length-1]):'—'}`; document.getElementById('rg-avg-pill').textContent = `近 5 平均：${runs.length?fmtMs(avg5):'—'}`;
-                const spark = document.getElementById('rg-spark'); if(spark && runs.length) { const max = Math.max(...runs), min = Math.min(...runs), span = Math.max(1, max-min); spark.innerHTML = runs.slice(-10).map(v=>`<div class="bar ${v<=min+span*.35?'good':v>=min+span*.8?'bad':''}" style="height:${Math.round(12+(v-min)/span*24)}px" title="${Math.round(v)}ms"></div>`).join(''); } else if(spark) spark.innerHTML = '';
+            function fmtMs(v) { return (v===null||v===''||isNaN(v)) ? '—' : `${Math.round(v)} ms`; }
+            function getRuns() {
+                try {
+                    return JSON.parse(localStorage.getItem(LS.reactionRuns)||'[]').filter(x=>x>0&&x<5000);
+                } catch(e) {
+                    return [];
+                }
             }
-            window.resetMiniGame = function() { localStorage.removeItem(LS.reactionBest); localStorage.removeItem(LS.reactionRuns); updateGamesSummary(); showToast('訓練紀錄已清除', 'info'); };
+            function setRuns(arr) {
+                try {
+                    localStorage.setItem(LS.reactionRuns, JSON.stringify(arr.slice(-20)));
+                } catch(e){}
+            }
+            function updateGamesSummary(){
+                const runs = getRuns(), best = localStorage.getItem(LS.reactionBest);
+                const avg5 = runs.slice(-5).reduce((a,b)=>a+b,0)/Math.max(1,runs.slice(-5).length);
+                document.getElementById('best-reaction').textContent = `最佳：${fmtMs(best)}`;
+                document.getElementById('rg-last-pill').textContent = `最近：${runs.length?fmtMs(runs[runs.length-1]):'—'}`;
+                document.getElementById('rg-avg-pill').textContent = `近 5 平均：${runs.length?fmtMs(avg5):'—'}`;
+                const spark = document.getElementById('rg-spark');
+                if (spark && runs.length) {
+                    const max = Math.max(...runs), min = Math.min(...runs), span = Math.max(1, max-min);
+                    spark.innerHTML = runs.slice(-10).map(v=>`<div class="bar ${v<=min+span*.35?'good':v>=min+span*.8?'bad':''}" style="height:${Math.round(12+(v-min)/span*24)}px" title="${Math.round(v)}ms"></div>`).join('');
+                } else if (spark) {
+                    spark.innerHTML = '';
+                }
+            }
+            
+            window.resetMiniGame = function() {
+                localStorage.removeItem(LS.reactionBest);
+                localStorage.removeItem(LS.reactionRuns);
+                updateGamesSummary();
+                showToast('訓練紀錄已清除', 'info');
+            };
+            
             window.openMiniGame = function() {
-                document.getElementById('gm-title').textContent = '動態反應測試'; document.getElementById('gm-meta').textContent = '規則：訊號變綠後立刻點擊（太早點算犯規）';
+                document.getElementById('gm-title').textContent = '動態反應測試';
+                document.getElementById('gm-meta').textContent = '規則：訊號變綠後立刻點擊（太早點算犯規）';
                 document.getElementById('gm-body').innerHTML = `<div class="gm-panel"><div style="display:flex;gap:16px;margin-bottom:20px;"><div class="rg-stat" style="flex:1"><div style="font-size:0.85rem;color:var(--text-muted);font-weight:700;">最佳成績</div><div style="font-weight:900;font-size:1.3rem;color:var(--idn-gold);" id="rg-best">${fmtMs(localStorage.getItem(LS.reactionBest))}</div></div><div class="rg-stat" style="flex:1"><div style="font-size:0.85rem;color:var(--text-muted);font-weight:700;">目前回合</div><div style="font-weight:900;font-size:1.3rem;color:var(--idn-blue);" id="rg-round">0 / 5</div></div></div><button class="gm-big-btn" id="rg-start"><i class="fas fa-play"></i> 開始 5 回合測試</button><div class="gm-reaction-area gm-reaction-wait" id="rg-area"><div style="font-size:1.4rem;font-weight:900;letter-spacing:1px;" id="rg-area-title">等待開始</div><div style="font-size:0.95rem;opacity:0.8;margin-top:6px;" id="rg-area-sub">點擊上方按鈕</div></div><div class="rg-progress">${Array(5).fill('<div class="rg-dot"></div>').join('')}</div></div>`;
                 openModalCommon('game-modal');
+                
                 let active = false, goTime = 0, timer = null, round = 0, scores = [], runs = getRuns();
-                const btn = document.getElementById('rg-start'), area = document.getElementById('rg-area');
-                function setArea(state, title, sub) { area.className = `gm-reaction-area ${state}`; document.getElementById('rg-area-title').textContent = title; document.getElementById('rg-area-sub').textContent = sub; }
-                btn.onclick = () => { round = 0; scores = []; btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 測試進行中...'; document.querySelectorAll('.rg-dot').forEach(d => d.className='rg-dot'); nextRound(); };
-                function nextRound() { setArea('gm-reaction-wait', '準備...', '保持專注，隨時準備點擊'); timer = setTimeout(() => { active = true; goTime = performance.now(); setArea('gm-reaction-go', '現在點擊！', ''); }, 800 + Math.random()*2500); }
+                const btn = document.getElementById('rg-start');
+                const area = document.getElementById('rg-area');
+                
+                function setArea(state, title, sub) {
+                    area.className = `gm-reaction-area ${state}`;
+                    document.getElementById('rg-area-title').textContent = title;
+                    document.getElementById('rg-area-sub').textContent = sub;
+                }
+                
+                btn.onclick = () => {
+                    round = 0; scores = [];
+                    btn.disabled = true;
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 測試進行中...';
+                    document.querySelectorAll('.rg-dot').forEach(d => d.className='rg-dot');
+                    nextRound();
+                };
+                
+                function nextRound() {
+                    setArea('gm-reaction-wait', '準備...', '保持專注，隨時準備點擊');
+                    timer = setTimeout(() => {
+                        active = true;
+                        goTime = performance.now();
+                        setArea('gm-reaction-go', '現在點擊！', '');
+                    }, 800 + Math.random()*2500);
+                }
+                
                 area.onclick = () => {
-                    if (!timer && !active) return; clearTimeout(timer); timer = null;
-                    if (!active) { setArea('gm-reaction-fail', '犯規！', '太早點擊了，不計成績'); setTimeout(nextRound, 1500); return; }
-                    active = false; const ms = performance.now() - goTime; scores.push(ms); runs.push(ms); setRuns(runs);
-                    const curBest = localStorage.getItem(LS.reactionBest); if(!curBest || ms < curBest) { localStorage.setItem(LS.reactionBest, ms); document.getElementById('rg-best').textContent = fmtMs(ms); }
+                    if (!timer && !active) return;
+                    clearTimeout(timer);
+                    timer = null;
+                    if (!active) {
+                        setArea('gm-reaction-fail', '犯規！', '太早點擊了，不計成績');
+                        setTimeout(nextRound, 1500);
+                        return;
+                    }
+                    active = false;
+                    const ms = performance.now() - goTime;
+                    scores.push(ms); runs.push(ms); setRuns(runs);
+                    
+                    const curBest = localStorage.getItem(LS.reactionBest);
+                    if (!curBest || ms < curBest) {
+                        localStorage.setItem(LS.reactionBest, ms);
+                        document.getElementById('rg-best').textContent = fmtMs(ms);
+                    }
+                    
                     setArea('gm-reaction-wait', `${Math.round(ms)} ms`, '不錯的反應！即將進入下一回合');
-                    document.querySelectorAll('.rg-dot')[round].className = 'rg-dot done'; round++; document.getElementById('rg-round').textContent = `${round} / 5`;
-                    if (round >= 5) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-redo"></i> 再來一局'; updateGamesSummary(); setArea('gm-reaction-wait', '訓練完成', `本次平均：${Math.round(scores.reduce((a,b)=>a+b,0)/5)} ms`); } else { setTimeout(nextRound, 1500); }
+                    document.querySelectorAll('.rg-dot')[round].className = 'rg-dot done';
+                    round++;
+                    document.getElementById('rg-round').textContent = `${round} / 5`;
+                    
+                    if (round >= 5) {
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fas fa-redo"></i> 再來一局';
+                        updateGamesSummary();
+                        setArea('gm-reaction-wait', '訓練完成', `本次平均：${Math.round(scores.reduce((a,b)=>a+b,0)/5)} ms`);
+                    } else {
+                        setTimeout(nextRound, 1500);
+                    }
                 };
             };
             document.addEventListener('DOMContentLoaded', updateGamesSummary);
@@ -1230,31 +1768,60 @@
         let activeAssignChip = null;
 
         function renderRosterList(players) {
-            const container = document.getElementById('roster-list'); if(!container) return;
+            const container = document.getElementById('roster-list');
+            if(!container) return;
             const currentlyChecked = Array.from(document.querySelectorAll('.roster-cb:checked')).map(cb => cb.value);
-            container.innerHTML = players.map(p => `<label class="roster-item"><div style="display:flex; align-items:center; gap:8px;"><div style="width:32px; height:32px; border-radius:50%; background:var(--idn-blue); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:0.85rem; overflow:hidden; border:2px solid var(--border-light);">${p.photo ? `<img src="${convertDriveLink(p.photo)}" style="width:100%; height:100%; object-fit:cover;">` : `<i class="fas fa-user"></i>`}</div><div style="font-weight:700; color:var(--idn-blue); font-size:0.95rem;">#${p.number} ${p.name}</div></div><input type="checkbox" class="roster-cb" value="${p.rowId}" data-num="${p.number}" data-name="${p.name}" ${currentlyChecked.includes(String(p.rowId)) ? 'checked' : ''}></label>`).join('');
-            document.querySelectorAll('.roster-cb').forEach(cb => { cb.addEventListener('change', updateBenchFromCheckboxes); });
+            container.innerHTML = players.map(p => `
+                <label class="roster-item">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <div style="width:32px; height:32px; border-radius:50%; background:var(--idn-blue); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:0.85rem; overflow:hidden; border:2px solid var(--border-light);">
+                            ${p.photo ? `<img src="${convertDriveLink(p.photo)}" style="width:100%; height:100%; object-fit:cover;">` : `<i class="fas fa-user"></i>`}
+                        </div>
+                        <div style="font-weight:700; color:var(--idn-blue); font-size:0.95rem;">#${p.number} ${p.name}</div>
+                    </div>
+                    <input type="checkbox" class="roster-cb" value="${p.rowId}" data-num="${p.number}" data-name="${p.name}" ${currentlyChecked.includes(String(p.rowId)) ? 'checked' : ''}>
+                </label>
+            `).join('');
+            
+            document.querySelectorAll('.roster-cb').forEach(cb => {
+                cb.addEventListener('change', updateBenchFromCheckboxes);
+            });
             document.getElementById('bench-list').innerHTML = '';
-            document.querySelectorAll('.roster-cb:checked').forEach(cb => { createChipToBench(cb.value, cb.getAttribute('data-num'), cb.getAttribute('data-name')); });
+            document.querySelectorAll('.roster-cb:checked').forEach(cb => {
+                createChipToBench(cb.value, cb.getAttribute('data-num'), cb.getAttribute('data-name'));
+            });
         }
 
         function createChipToBench(id, num, name) {
             if (!document.querySelector(`.player-chip[data-id="${id}"]`)) {
-                const chip = document.createElement('div'); chip.className = 'player-chip'; chip.setAttribute('data-id', id); chip.setAttribute('data-num', num); chip.setAttribute('data-name', name);
-                chip.innerHTML = `<span>#${num} ${name}</span><i class="fas fa-times-circle chip-del"></i>`; document.getElementById('bench-list').appendChild(chip);
+                const chip = document.createElement('div');
+                chip.className = 'player-chip';
+                chip.setAttribute('data-id', id);
+                chip.setAttribute('data-num', num);
+                chip.setAttribute('data-name', name);
+                chip.innerHTML = `<span>#${num} ${name}</span><i class="fas fa-times-circle chip-del"></i>`;
+                document.getElementById('bench-list').appendChild(chip);
             }
         }
 
         function updateBenchFromCheckboxes(e) {
-            const cb = e.target; const id = cb.value;
-            if (cb.checked) { createChipToBench(id, cb.getAttribute('data-num'), cb.getAttribute('data-name')); } 
-            else { document.querySelectorAll(`.player-chip[data-id="${id}"]`).forEach(chip => chip.remove()); updateBattingColors(); }
+            const cb = e.target;
+            const id = cb.value;
+            if (cb.checked) {
+                createChipToBench(id, cb.getAttribute('data-num'), cb.getAttribute('data-name'));
+            } else {
+                document.querySelectorAll(`.player-chip[data-id="${id}"]`).forEach(chip => chip.remove());
+                updateBattingColors();
+            }
         }
 
         function updateBattingColors() {
-            document.querySelectorAll('#batting-list .player-chip').forEach(chip => { chip.classList.remove('pos-bg-of', 'pos-bg-if', 'pos-bg-p', 'pos-bg-c', 'pos-bg-ep'); });
-            document.querySelectorAll('.field-slot .player-chip').forEach(fChip => {
-                const id = fChip.getAttribute('data-id'); const pos = fChip.parentElement.getAttribute('data-pos');
+            document.querySelectorAll('#batting-list .player-chip').forEach(chip => {
+                chip.classList.remove('pos-bg-of', 'pos-bg-if', 'pos-bg-p', 'pos-bg-c', 'pos-bg-ep');
+            });
+            document.querySelectorAll('.field-slot:not(.view-field-slot) .player-chip').forEach(fChip => {
+                const id = fChip.getAttribute('data-id');
+                const pos = fChip.parentElement.getAttribute('data-pos');
                 const bChip = document.querySelector(`#batting-list .player-chip[data-id="${id}"]`);
                 if (bChip) {
                     if (['LF', 'CF', 'FF', 'RF'].includes(pos)) bChip.classList.add('pos-bg-of');
@@ -1267,38 +1834,161 @@
         }
 
         function clearAssignMode() {
-            activeAssignId = null; activeAssignChip = null;
-            document.querySelectorAll('.chip-selected').forEach(el => el.classList.remove('chip-selected')); document.querySelectorAll('.slot-highlight').forEach(el => el.classList.remove('slot-highlight'));
+            activeAssignId = null;
+            activeAssignChip = null;
+            document.querySelectorAll('.chip-selected').forEach(el => el.classList.remove('chip-selected'));
+            document.querySelectorAll('.slot-highlight').forEach(el => el.classList.remove('slot-highlight'));
         }
 
         function initLineupBuilder() {
             if (typeof Sortable === 'undefined') return;
             const touchOptions = { delay: 150, delayOnTouchOnly: true, touchStartThreshold: 5, animation: 150 };
-            benchSortable = new Sortable(document.getElementById('bench-list'), { ...touchOptions, group: { name: 'shared', pull: true, put: true }, onAdd: function(evt) { const id = evt.item.getAttribute('data-id'); if (evt.from.id === 'batting-list') { const fChip = document.querySelector(`.field-slot .player-chip[data-id="${id}"]`); if (fChip) fChip.remove(); updateBattingColors(); } else if (evt.from.classList.contains('field-slot')) { evt.item.remove(); const original = document.querySelector(`#batting-list .player-chip[data-id="${id}"]`); if (original) document.getElementById('bench-list').appendChild(original); updateBattingColors(); } } });
-            battingSortable = new Sortable(document.getElementById('batting-list'), { ...touchOptions, group: { name: 'shared', pull: 'clone', put: true }, onAdd: function(evt) { const id = evt.item.getAttribute('data-id'); if (evt.from.classList.contains('field-slot')) { evt.item.remove(); updateBattingColors(); return; } if (evt.from.id === 'bench-list') { const duplicates = document.querySelectorAll(`#batting-list .player-chip[data-id="${id}"]`); if (duplicates.length > 1) evt.item.remove(); } const currentBatters = document.querySelectorAll('#batting-list .player-chip'); if (currentBatters.length > 11) { showToast('打擊順序已達 11 棒上限', 'error'); if (evt.from.id === 'bench-list') { document.getElementById('bench-list').appendChild(evt.item); } else { evt.item.remove(); } } } });
+            
+            benchSortable = new Sortable(document.getElementById('bench-list'), {
+                ...touchOptions,
+                group: { name: 'shared', pull: true, put: true },
+                onAdd: function(evt) {
+                    const id = evt.item.getAttribute('data-id');
+                    if (evt.from.id === 'batting-list') {
+                        const fChip = document.querySelector(`.field-slot .player-chip[data-id="${id}"]`);
+                        if (fChip) fChip.remove();
+                        updateBattingColors();
+                    } else if (evt.from.classList.contains('field-slot')) {
+                        evt.item.remove();
+                        const original = document.querySelector(`#batting-list .player-chip[data-id="${id}"]`);
+                        if (original) document.getElementById('bench-list').appendChild(original);
+                        updateBattingColors();
+                    }
+                }
+            });
+            
+            battingSortable = new Sortable(document.getElementById('batting-list'), {
+                ...touchOptions,
+                group: { name: 'shared', pull: 'clone', put: true },
+                onAdd: function(evt) {
+                    const id = evt.item.getAttribute('data-id');
+                    if (evt.from.classList.contains('field-slot')) {
+                        evt.item.remove();
+                        updateBattingColors();
+                        return;
+                    }
+                    if (evt.from.id === 'bench-list') {
+                        const duplicates = document.querySelectorAll(`#batting-list .player-chip[data-id="${id}"]`);
+                        if (duplicates.length > 1) evt.item.remove();
+                    }
+                    const currentBatters = document.querySelectorAll('#batting-list .player-chip');
+                    if (currentBatters.length > 11) {
+                        showToast('打擊順序已達 11 棒上限', 'error');
+                        if (evt.from.id === 'bench-list') {
+                            document.getElementById('bench-list').appendChild(evt.item);
+                        } else {
+                            evt.item.remove();
+                        }
+                    }
+                }
+            });
             
             document.querySelectorAll('.field-slot:not(.view-field-slot)').forEach(slot => {
-                fieldSortables.push(new Sortable(slot, { ...touchOptions, group: { name: 'field', pull: true, put: function(to, from) { return from.el.id === 'batting-list' || from.el.classList.contains('field-slot'); } }, onAdd: function(evt) { const item = evt.item; const id = item.getAttribute('data-id'); item.innerHTML = ''; Array.from(slot.children).forEach(child => { if (child !== item && child.classList.contains('player-chip')) child.remove(); }); document.querySelectorAll('.field-slot:not(.view-field-slot) .player-chip').forEach(chip => { if (chip !== item && chip.getAttribute('data-id') === id) chip.remove(); }); updateBattingColors(); } }));
+                fieldSortables.push(new Sortable(slot, {
+                    ...touchOptions,
+                    group: {
+                        name: 'field',
+                        pull: true,
+                        put: function(to, from) {
+                            return from.el.id === 'batting-list' || from.el.classList.contains('field-slot');
+                        }
+                    },
+                    onAdd: function(evt) {
+                        const item = evt.item;
+                        const id = item.getAttribute('data-id');
+                        item.innerHTML = '';
+                        Array.from(slot.children).forEach(child => {
+                            if (child !== item && child.classList.contains('player-chip')) child.remove();
+                        });
+                        document.querySelectorAll('.field-slot:not(.view-field-slot) .player-chip').forEach(chip => {
+                            if (chip !== item && chip.getAttribute('data-id') === id) chip.remove();
+                        });
+                        updateBattingColors();
+                    }
+                }));
             });
 
             document.getElementById('lineup-builder').addEventListener('click', function(e) {
-                const benchList = document.getElementById('bench-list'); const battingList = document.getElementById('batting-list'); const target = e.target;
-                if (target.closest('.chip-del')) { const chip = target.closest('.player-chip'); const id = chip.getAttribute('data-id'); benchList.appendChild(chip); const fChip = document.querySelector(`.field-slot .player-chip[data-id="${id}"]`); if (fChip) fChip.remove(); clearAssignMode(); updateBattingColors(); return; }
-                if (benchList.contains(target)) { const chip = target.closest('.player-chip'); if (chip) { if (battingList.querySelectorAll('.player-chip').length >= 11) { showToast('打擊順序已達 11 棒上限', 'error'); return; } battingList.appendChild(chip); clearAssignMode(); updateBattingColors(); return; } }
-                if (battingList.contains(target)) { const chip = target.closest('.player-chip'); if (chip && !target.closest('.chip-del')) { if (activeAssignId === chip.getAttribute('data-id')) { clearAssignMode(); } else { clearAssignMode(); activeAssignId = chip.getAttribute('data-id'); activeAssignChip = chip; chip.classList.add('chip-selected'); document.querySelectorAll('.field-slot:not(.view-field-slot)').forEach(slot => { if (!slot.querySelector('.player-chip')) { slot.classList.add('slot-highlight'); } }); } return; } }
+                const benchList = document.getElementById('bench-list');
+                const battingList = document.getElementById('batting-list');
+                const target = e.target;
+                
+                if (target.closest('.chip-del')) {
+                    const chip = target.closest('.player-chip');
+                    const id = chip.getAttribute('data-id');
+                    benchList.appendChild(chip);
+                    const fChip = document.querySelector(`.field-slot .player-chip[data-id="${id}"]`);
+                    if (fChip) fChip.remove();
+                    clearAssignMode();
+                    updateBattingColors();
+                    return;
+                }
+                
+                if (benchList.contains(target)) {
+                    const chip = target.closest('.player-chip');
+                    if (chip) {
+                        if (battingList.querySelectorAll('.player-chip').length >= 11) {
+                            showToast('打擊順序已達 11 棒上限', 'error');
+                            return;
+                        }
+                        battingList.appendChild(chip);
+                        clearAssignMode();
+                        updateBattingColors();
+                        return;
+                    }
+                }
+                
+                if (battingList.contains(target)) {
+                    const chip = target.closest('.player-chip');
+                    if (chip && !target.closest('.chip-del')) {
+                        if (activeAssignId === chip.getAttribute('data-id')) {
+                            clearAssignMode();
+                        } else {
+                            clearAssignMode();
+                            activeAssignId = chip.getAttribute('data-id');
+                            activeAssignChip = chip;
+                            chip.classList.add('chip-selected');
+                            document.querySelectorAll('.field-slot:not(.view-field-slot)').forEach(slot => {
+                                if (!slot.querySelector('.player-chip')) {
+                                    slot.classList.add('slot-highlight');
+                                }
+                            });
+                        }
+                        return;
+                    }
+                }
+                
                 const fieldSlot = target.closest('.field-slot:not(.view-field-slot)');
                 if (fieldSlot) {
                     const existingChip = fieldSlot.querySelector('.player-chip');
-                    if (activeAssignId) { if (existingChip && existingChip.getAttribute('data-id') !== activeAssignId) existingChip.remove(); document.querySelectorAll(`.field-slot .player-chip[data-id="${activeAssignId}"]`).forEach(c => c.remove()); const num = activeAssignChip.getAttribute('data-num'); const newFChip = document.createElement('div'); newFChip.className = 'player-chip'; newFChip.setAttribute('data-id', activeAssignId); newFChip.setAttribute('data-num', num); fieldSlot.appendChild(newFChip); clearAssignMode(); updateBattingColors(); } 
-                    else { if (existingChip) { existingChip.remove(); updateBattingColors(); } }
-                } else { clearAssignMode(); }
+                    if (activeAssignId) {
+                        if (existingChip && existingChip.getAttribute('data-id') !== activeAssignId) existingChip.remove();
+                        document.querySelectorAll(`.field-slot .player-chip[data-id="${activeAssignId}"]`).forEach(c => c.remove());
+                        const num = activeAssignChip.getAttribute('data-num');
+                        const newFChip = document.createElement('div');
+                        newFChip.className = 'player-chip';
+                        newFChip.setAttribute('data-id', activeAssignId);
+                        newFChip.setAttribute('data-num', num);
+                        fieldSlot.appendChild(newFChip);
+                        clearAssignMode();
+                        updateBattingColors();
+                    } else {
+                        if (existingChip) {
+                            existingChip.remove();
+                            updateBattingColors();
+                        }
+                    }
+                } else {
+                    clearAssignMode();
+                }
             });
         }
 
-        // ==========================================
-        // 發布與檢視 先發陣容
-        // ==========================================
-        
         function submitLineup() {
             if (isLineupPublished()) {
                 if (!confirm('要取消目前發布的先發陣容嗎？')) return;
@@ -1313,10 +2003,15 @@
             document.querySelectorAll('.field-slot:not(.view-field-slot)').forEach(slot => {
                 const pos = slot.getAttribute('data-pos');
                 const chip = slot.querySelector('.player-chip');
-                if (chip) { fielders[pos] = { id: chip.getAttribute('data-id'), num: chip.getAttribute('data-num') }; }
+                if (chip) {
+                    fielders[pos] = { id: chip.getAttribute('data-id'), num: chip.getAttribute('data-num') };
+                }
             });
             
-            if (batters.length === 0) { showToast("打序為空，無法發布", "error"); return; }
+            if (batters.length === 0) {
+                showToast("打序為空，無法發布", "error");
+                return;
+            }
             const bench = [];
             document.querySelectorAll('#bench-list .player-chip').forEach(chip => {
                 bench.push({ id: chip.getAttribute('data-id'), num: chip.getAttribute('data-num'), name: chip.getAttribute('data-name') });
