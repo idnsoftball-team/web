@@ -174,12 +174,33 @@
         .player-admin-overlay { position: absolute; top: 12px; right: 12px; display: none; gap: 8px; background: rgba(255,255,255,0.95); backdrop-filter: blur(4px); border-radius: 8px; padding: 6px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); z-index: 20; border: 1px solid rgba(0,0,0,0.05); }
         body.is-admin .player-admin-overlay { display: flex; }
 
-        /* MVP 卡片特效 - UI調整移至照片左下角 */
+        /* MVP 卡片特效 & 精準定位 */
         @keyframes subtle-gold-pulse { 0% { box-shadow: 0 0 0 0 rgba(197, 160, 89, 0.5); border-color: var(--idn-gold); } 70% { box-shadow: 0 0 0 10px rgba(197, 160, 89, 0); border-color: #e0c488; } 100% { box-shadow: 0 0 0 0 rgba(197, 160, 89, 0); border-color: var(--idn-gold); } }
         .mvp-highlight-card { border: 2px solid var(--idn-gold) !important; animation: subtle-gold-pulse 2s infinite ease-out; transform: translateY(-2px); }
         .mvp-highlight-card:hover { transform: translateY(-8px); animation: none; box-shadow: 0 20px 30px rgba(197, 160, 89, 0.25); }
-        .mvp-badge-icon { position: absolute; bottom: 10px; left: -6px; background: linear-gradient(135deg, #ef4444, #b91c1c); color: #fff; font-weight: 900; font-size: 0.85rem; letter-spacing: 1px; padding: 6px 16px; border-radius: 0 16px 16px 0; box-shadow: 4px 4px 15px rgba(0,0,0,0.25); z-index: 20; border: 1px solid rgba(255,255,255,0.2); text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
+        
+        .mvp-badge-icon { position: absolute; top: 190px; left: -6px; background: linear-gradient(135deg, #ef4444, #b91c1c); color: #fff; font-weight: 900; font-size: 0.85rem; letter-spacing: 1px; padding: 6px 16px; border-radius: 0 16px 16px 0; box-shadow: 4px 4px 15px rgba(0,0,0,0.25); z-index: 20; border: 1px solid rgba(255,255,255,0.2); text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
         .mvp-badge-icon::before { content: '★ '; color: var(--idn-gold); }
+
+        /* 👑 累積 MVP 小星星容器 (從右往左，滿了往上) */
+        .mvp-stars-container {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            display: flex;
+            flex-wrap: wrap-reverse; /* 滿了往上排 */
+            justify-content: flex-end;
+            max-width: 135px; /* 控制一行約 10~12 顆星星的寬度 */
+            gap: 3px;
+            z-index: 15;
+            pointer-events: none;
+        }
+        .mvp-star {
+            color: var(--idn-gold);
+            font-size: 0.8rem;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.9); /* 加上陰影確保在淺色照片也清楚 */
+            filter: drop-shadow(0 0 2px rgba(197, 160, 89, 0.8));
+        }
 
         /* ==========================================
            Lineup Builder (排陣系統)
@@ -188,7 +209,7 @@
         .lineup-container { max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
         .roster-panel { background: var(--idn-gray); border-radius: 12px; padding: 15px; border: 1px solid var(--border-light); box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); }
         .roster-panel h3 { font-size: 1.05rem; color: var(--idn-blue); margin-bottom: 12px; border-bottom: 2px solid var(--border-light); padding-bottom: 8px; display: flex; align-items: center; gap: 8px; }
-        .roster-list { max-height: 270px; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px; padding-right: 5px; }
+        .roster-list { max-height: 180px; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px; padding-right: 5px; }
         .roster-list::-webkit-scrollbar { width: 4px; } .roster-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 2px; }
         .roster-item { display: flex; align-items: center; justify-content: space-between; background: var(--surface); padding: 6px 12px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); cursor: pointer; border: 1px solid var(--border-light); }
         .roster-cb { transform: scale(1.2); accent-color: var(--idn-blue); margin-left: 8px; }
@@ -247,13 +268,12 @@
         .field-slot .player-chip .chip-del { display: none; }
         .field-slot .player-chip::after { content: attr(data-num); font-size: 1.05rem; font-weight: 900; }
 
-        /* --- Lineup View Modal (觀眾檢視卡片) --- */
+        /* --- Lineup View Modal --- */
         #lineup-view-modal .modal-content { max-width: 1050px; padding: 20px; background: var(--idn-gray); }
         .lineup-view-layout { display: flex; gap: 20px; align-items: stretch; }
         .lineup-view-field { flex: 1.5; min-width: 0; }
         .lineup-view-batting { flex: 1; min-width: 0; background: var(--surface); padding: 18px; border-radius: 16px; border: 1px solid var(--border-light); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
         .lineup-view-batting h4 { text-align: center; color: var(--idn-blue); font-weight: 900; margin-bottom: 16px; font-size: 1.2rem; letter-spacing: 1px; }
-
         .lineup-view-bench { flex: 1; min-width: 0; background: var(--surface); padding: 18px; border-radius: 16px; border: 1px solid var(--border-light); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
         .lineup-view-bench h4 { text-align: center; color: var(--idn-blue); font-weight: 900; margin-bottom: 16px; font-size: 1.2rem; letter-spacing: 1px; }
 
@@ -303,29 +323,22 @@
             .mvp-container { bottom: 20px; left: 20px; } 
             section { padding: 4rem 5%; }
             .section-title { font-size: 1.9rem; margin-bottom: 2rem; }
-            .schedule-table-container table, .schedule-table-container thead, .desktop-only { display: none !important; } .mobile-only { display: block !important; }
+            
+            .schedule-table-container, .desktop-only { display: none !important; } 
+            .mobile-only { display: block !important; }
             
             .schedule-mobile-list { display: flex; flex-direction: column; gap: 16px; width: 100%; }
             .schedule-card { background: var(--surface); border-radius: 16px; box-shadow: var(--card-shadow); border: 1px solid var(--border-light); overflow: hidden; width: 100%; position: relative; }
-            
-            /* 修改賽程表編輯按鈕位置，避免擋住地點 */
-            .mobile-admin-actions { position: absolute; top: 48px; right: 12px; background: rgba(255,255,255,0.95); padding: 6px; border-radius: 10px; z-index: 5; display: none; border: 1px solid var(--border-light); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-            body.is-admin .mobile-admin-actions { display: flex; gap: 8px; }
+            .mobile-admin-actions { position: relative; display: none; padding-top: 14px; margin-top: 14px; border-top: 1px dashed var(--border-light); justify-content: flex-end; gap: 10px; background: transparent; box-shadow: none; border-radius: 0; right: auto; top: auto; }
+            body.is-admin .mobile-admin-actions { display: flex; }
             
             .card-header { background: var(--idn-gray); border-bottom: 1px solid var(--border-light); padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; }
-            .card-date { font-weight: 900; font-size: 1.15rem; color: var(--idn-blue); letter-spacing: 0.5px; } .card-loc { font-size: 0.95rem; color: var(--text-main); font-weight: 700; margin-right: 40px; display: flex; align-items: center; gap: 6px; }
+            .card-date { font-weight: 900; font-size: 1.15rem; color: var(--idn-blue); letter-spacing: 0.5px; } 
+            .card-loc { font-size: 0.95rem; color: var(--text-main); font-weight: 700; display: flex; align-items: center; gap: 6px; }
             .card-body { padding: 18px; } 
             
-            
-
-.card-row { display: flex; margin-bottom: 12px; align-items: center; font-size: 0.95rem; }
-.card-label { color: var(--text-muted); font-weight: 700; width: 65px; flex-shrink: 0; font-size: 0.9rem; }
-.card-value { color: var(--text-main); font-weight: 600; }
-.games-compact { display: flex; gap: 8px; flex-wrap: wrap; }
-.game-tag { background: var(--idn-gray); border: 1px solid var(--border-light); padding: 4px 10px; border-radius: 8px; font-size: 0.85rem; display: flex; gap: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-.game-tag span { color: var(--text-muted); font-size: 0.8rem; font-weight: 700; }
-.game-tag strong { color: var(--idn-blue); font-family: 'Roboto Mono', monospace; font-weight: 800; }
-.card-remark { margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--border-light); color: var(--text-muted); font-size: 0.9rem; line-height: 1.5; }.players-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 12px; }
+            .mvp-badge-icon { top: 125px; font-size: 0.8rem; padding: 4px 12px; }
+            .players-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 12px; }
             .player-img-container { height: 160px; }
             .player-info { padding: 12px 8px; }
             .player-name-full { font-size: 1rem; margin-bottom: 6px; }
@@ -336,11 +349,9 @@
             .batting-col { flex: 0 0 145px; } 
             .tactics-side-by-side { gap: 8px; }
 
-            /* 守備位置圖：外野區域更緊湊（利於手機同屏操作） */
             .fielding-row { padding: 5px; }
             .fielding-row .fielding-map { aspect-ratio: 1 / 0.74; max-width: 380px; }
 
-            /* Lineup View Modal 手機版垂直堆疊 */
             .lineup-view-layout { flex-direction: column; }
         }
 
@@ -369,69 +380,26 @@
         /* --- Mini Games 區塊 --- */
         #games { background: radial-gradient(circle at 20% 80%, rgba(197, 160, 89, 0.15), transparent 50%), linear-gradient(135deg, #1e293b 0%, #0f172a 100%); position: relative; }
         #games::before { content: ''; position: absolute; top:0; left:0; width:100%; height:100%; background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px); background-size: 30px 30px; pointer-events: none; }
-        
         .games-grid { display: grid; grid-template-columns: 1fr; gap: 20px; max-width: 900px; margin: 0 auto; padding: 0 16px; position: relative; z-index: 1; }
-        .game-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 28px; box-shadow: 0 15px 35px rgba(0,0,0,0.3); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease; }
+        .game-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 28px; box-shadow: 0 15px 35px rgba(0,0,0,0.3); backdrop-filter: blur(12px); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease; }
         .game-card:hover { transform: translateY(-6px); box-shadow: 0 20px 45px rgba(0,0,0,0.4), 0 0 30px rgba(197, 160, 89, 0.15); border-color: rgba(197, 160, 89, 0.4); }
-        
-        .games-toggle{ width: calc(100% - 32px); max-width: 1100px; margin: 0 auto; border: 1px solid rgba(255,255,255,0.15); background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.03) 100%); border-radius: 20px; padding: 22px 28px; display:flex; align-items:center; justify-content: space-between; gap: 16px; cursor:pointer; text-align:left; color: white; box-shadow: 0 15px 35px rgba(0,0,0,0.25); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); position: relative; overflow:hidden; transition: all 0.3s; z-index: 1; }
-        .games-toggle:hover{ border-color: var(--idn-gold); box-shadow: 0 15px 35px rgba(0,0,0,0.3), var(--stadium-glow); }
-        .games-toggle-title{ font-size: 1.5rem; font-weight: 900; letter-spacing: 1px; }
-        .games-badge{ font-size: 0.9rem; font-weight: 800; padding: 6px 14px; border-radius: 20px; background: rgba(197, 160, 89, 0.2); border: 1px solid rgba(197, 160, 89, 0.5); color: var(--idn-gold); letter-spacing: 0.5px; }
-        .games-badge.ghost{ background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.2); color: rgba(255,255,255,0.8); }
-        
+        .games-toggle{ width: calc(100% - 32px); max-width: 1100px; margin: 0 auto; border: 1px solid rgba(255,255,255,0.15); background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.03) 100%); border-radius: 20px; padding: 22px 28px; display:flex; align-items:center; justify-content: space-between; gap: 16px; cursor:pointer; color: white; box-shadow: 0 15px 35px rgba(0,0,0,0.25); backdrop-filter: blur(12px); position: relative; overflow:hidden; transition: all 0.3s; z-index: 1; }
+        .games-badge{ font-size: 0.9rem; font-weight: 800; padding: 6px 14px; border-radius: 20px; background: rgba(197, 160, 89, 0.2); border: 1px solid rgba(197, 160, 89, 0.5); color: var(--idn-gold); }
         .games-panel{ max-width: 1100px; margin: 0 auto; max-height: 0; opacity: 0; transform: translateY(-15px); overflow:hidden; pointer-events:none; transition: max-height 0.5s ease, opacity 0.4s ease, transform 0.4s ease; }
         .games-panel.open{ max-height: 2000px; opacity: 1; transform: translateY(0); pointer-events:auto; margin-top: 24px; }
-
-        /* Reaction Game UI */
         .gcf-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
         .gcf-title { display: flex; gap: 16px; align-items: center; }
-        .gcf-icon { font-size: 2rem; color: var(--idn-gold); background: rgba(197, 160, 89, 0.15); width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; border-radius: 16px; border: 1px solid rgba(197, 160, 89, 0.3); box-shadow: inset 0 0 10px rgba(197, 160, 89, 0.1); }
-        .gcf-name { font-weight: 900; font-size: 1.3rem; margin-bottom: 4px; letter-spacing: 0.5px; color: #ffffff; text-shadow: 0 1px 3px rgba(0,0,0,0.5); }
-        .gcf-desc { color: rgba(255,255,255,0.85); font-size: 0.95rem; }
-        .gcf-pills { display: flex; gap: 10px; }
-        .gcf-pill { font-size: 0.9rem; font-weight: 600; padding: 6px 12px; border-radius: 10px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); font-family: 'Roboto Mono', monospace; color: #ffffff; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
-        
+        .gcf-icon { font-size: 2rem; color: var(--idn-gold); background: rgba(197, 160, 89, 0.15); width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; border-radius: 16px; border: 1px solid rgba(197, 160, 89, 0.3); }
+        .gcf-name { font-weight: 900; font-size: 1.3rem; margin-bottom: 4px; color: #ffffff; }
         .gcf-mid { display: flex; gap: 16px; margin-bottom: 28px; flex-wrap: wrap; }
-        .gcf-metric { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 16px 20px; flex: 1; min-width: 140px; box-shadow: inset 0 2px 5px rgba(0,0,0,0.2); }
-        .gcf-metric .k { font-size: 0.85rem; font-weight: 700; color: rgba(255,255,255,0.8); margin-bottom: 6px; letter-spacing: 0.5px; }
+        .gcf-metric { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 16px 20px; flex: 1; min-width: 140px; }
+        .gcf-metric .k { font-size: 0.85rem; font-weight: 700; color: rgba(255,255,255,0.8); margin-bottom: 6px; }
         .gcf-metric .v { font-size: 1.4rem; font-weight: 900; font-family: 'Roboto Mono'; color: var(--idn-gold); }
-        .gcf-spark { height: 36px; display: flex; align-items: flex-end; gap: 4px; }
-        .gcf-spark .bar { width: 10px; background: rgba(255,255,255,0.2); border-radius: 3px 3px 0 0; transition: background 0.3s; }
-        .gcf-spark .bar.good { background: #10b981; box-shadow: 0 0 8px rgba(16,185,129,0.5); }
-        .gcf-spark .bar.bad { background: #ef4444; box-shadow: 0 0 8px rgba(239,68,68,0.5); }
-
         .game-actions { display: flex; gap: 16px; }
-
-        /* Game Modal 專用 */
-        .game-modal-content { background: var(--surface); color: var(--text-main); }
-        .game-modal-title { font-weight: 900; color: var(--idn-blue); font-size: 1.6rem; letter-spacing: 1px; }
-        .gm-panel { background: var(--idn-gray); border: 1px solid var(--border-light); border-radius: 20px; padding: 24px; }
-        .rg-stat { background: var(--surface); border: 1px solid var(--border-light); border-radius: 16px; padding: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); text-align: center; }
-        .gm-big-btn { width: 100%; padding: 18px; border-radius: 16px; border: none; background: linear-gradient(135deg, var(--idn-gold), #a38142); color: white; font-weight: 900; font-size: 1.2rem; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 6px 15px rgba(197, 160, 89, 0.3); margin: 20px 0; letter-spacing: 1px; }
-        .gm-big-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(197, 160, 89, 0.5); }
         
-        .gm-reaction-area { margin-top: 16px; height: 260px; border-radius: 20px; display:flex; flex-direction: column; align-items:center; justify-content:center; font-weight: 900; user-select:none; cursor: pointer; transition: background 0.1s, transform 0.1s; }
-        .gm-reaction-area:active { transform: scale(0.98); }
-        .gm-reaction-wait { background: var(--border-light); color: var(--text-muted); border: 3px dashed #cbd5e1; }
-        .gm-reaction-go { background: #10b981; color: white; box-shadow: inset 0 0 0 6px rgba(255,255,255,0.3), 0 15px 40px rgba(16,185,129,0.5); border: none; }
-        .gm-reaction-fail { background: #ef4444; color: white; border: none; box-shadow: 0 10px 30px rgba(239,68,68,0.4); }
-
-        .rg-progress { display: flex; gap: 12px; justify-content: center; margin-top: 24px; }
-        .rg-dot { width: 14px; height: 14px; border-radius: 50%; background: var(--border-light); transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .rg-dot.active { background: var(--idn-gold); box-shadow: 0 0 0 4px rgba(197, 160, 89, 0.2); transform: scale(1.3); }
-        .rg-dot.done { background: #10b981; }
-    
-
-        /* --- Lineup Publish Toggle (發布/取消) --- */
-#btn-submit-lineup.is-cancel {
-    background: linear-gradient(135deg, #ef4444, #b91c1c) !important;
-    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.35) !important;
-}
-#btn-submit-lineup.is-cancel:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 22px rgba(239, 68, 68, 0.45) !important;
-}
+        /* Lineup Publish Toggle */
+        #btn-submit-lineup.is-cancel { background: linear-gradient(135deg, #ef4444, #b91c1c) !important; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.35) !important; }
+        #btn-submit-lineup.is-cancel:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(239, 68, 68, 0.45) !important; }
     </style>
 </head>
 <body>
@@ -527,7 +495,6 @@
                 <i class="fas fa-chevron-down" style="transition: transform 0.3s; font-size:1.2rem;"></i>
             </div>
         </button>
-
         <div class="games-panel" id="games-panel">
             <div class="games-grid">
                 <div class="game-card game-card-feature reveal">
@@ -544,7 +511,6 @@
                             <span class="gcf-pill ghost" id="rg-avg-pill">近 5 平均：—</span>
                         </div>
                     </div>
-
                     <div class="gcf-mid">
                         <div class="gcf-metric">
                             <div class="k">穩定度</div>
@@ -555,7 +521,6 @@
                             <div class="gcf-spark" id="rg-spark"></div>
                         </div>
                     </div>
-
                     <div class="game-actions">
                         <button class="btn-main" onclick="openMiniGame('reaction')" style="background:linear-gradient(135deg, var(--idn-gold), #a38142); color:#fff; box-shadow: 0 4px 15px rgba(197, 160, 89, 0.4);"><i class="fas fa-play"></i> 進入訓練</button>
                         <button class="btn-outline" onclick="resetMiniGame('reaction')" style="background:transparent; color:#fff; border-color:rgba(255,255,255,0.3);"><i class="fas fa-redo"></i> 清除紀錄</button>
@@ -679,11 +644,11 @@
 
                 <div id="tab-mvp" class="tab-content" style="display:none;">
                     <div class="form-group">
-                        <label>MVP YouTube 網址</label>
+                        <label>MVP YouTube 網址 <span style="font-size:0.85rem; font-weight:500; color:var(--text-muted);">(若留空，系統將自動從 YT 抓取最新影片)</span></label>
                         <input type="text" id="mvp-url-input" placeholder="貼上完整 YouTube 網址...">
                     </div>
                     <div class="form-group" style="margin-top:24px;">
-                        <label style="color:var(--idn-gold);">本週 MVP 背號 <span style="font-size:0.85rem; font-weight:600; color:var(--text-muted);">(設定後將於球員卡片顯示特效)</span></label>
+                        <label style="color:var(--idn-gold);">本週 MVP 背號</label>
                         <input type="number" id="mvp-number-input" placeholder="輸入背號，例如 18 (輸入 0 取消)">
                     </div>
                     <button class="btn-main" onclick="submitMvpData()" id="btn-submit-mvp" style="width:100%; margin-top:30px; justify-content: center; padding:16px; font-size:1.1rem; background:linear-gradient(135deg, var(--idn-gold), #a38142); box-shadow: 0 4px 15px rgba(197, 160, 89, 0.4);">
@@ -750,6 +715,9 @@
         // ==========================================
         let deferredPrompt;
         let swReg = null;
+        
+        // 全域儲存 MVP 星星數量
+        window.globalMvpStats = {};
 
         function showToast(msg, type = 'info', durationMs = 2800) {
             const el = document.getElementById('app-toast');
@@ -820,70 +788,41 @@
         
         let allSchedules = [], allPlayers = [], posHeaders = [];
         let isViewAll = false, currentMvpEmbedUrl = "", isModalOpen = false, currentMvpNumber = ""; 
-        let currentLineupData = null; // 記錄從後端拉回來的陣容
+        let currentLineupData = null; 
 
+        function isLineupPublished() { return !!(currentLineupData && currentLineupData.timestamp && Array.isArray(currentLineupData.batters) && currentLineupData.batters.length > 0); }
+        function updateLineupPublishButton() {
+            const btn = document.getElementById('btn-submit-lineup'); if (!btn) return;
+            if (isLineupPublished()) { btn.classList.add('is-cancel'); btn.innerHTML = '<i class="fas fa-ban"></i> 取消目前發布'; } 
+            else { btn.classList.remove('is-cancel'); btn.innerHTML = '<i class="fas fa-paper-plane"></i> 發布先發陣容'; }
+        }
 
-function isLineupPublished() {
-    return !!(currentLineupData && currentLineupData.timestamp && Array.isArray(currentLineupData.batters) && currentLineupData.batters.length > 0);
-}
-
-function updateLineupPublishButton() {
-    const btn = document.getElementById('btn-submit-lineup');
-    if (!btn) return;
-
-    if (isLineupPublished()) {
-        btn.classList.add('is-cancel');
-        btn.innerHTML = '<i class="fas fa-ban"></i> 取消目前發布';
-    } else {
-        btn.classList.remove('is-cancel');
-        btn.innerHTML = '<i class="fas fa-paper-plane"></i> 發布先發陣容';
-    }
-}
         const PASSWORD_SALT = "IDN_TEAM_2025_SECURE_SALT_!@#";
         const ADMIN_HASH = "c9f04b134812708966ccfdf8c4b3a04175730cd67aafd5cf479cf7acecdc343b";
         let gasPostReadable = true;
 
-        function setAdminUI(isAdmin) {
-            document.body.classList.toggle('is-admin', !!isAdmin);
-            const btnAdd = document.getElementById('btn-add-player');
-            if (btnAdd) btnAdd.style.display = isAdmin ? 'block' : 'none';
-        }
-
-        async function isPasswordHashValid(pwd) {
-            if (!pwd) return false;
-            const msgBuffer = new TextEncoder().encode(pwd.trim() + PASSWORD_SALT);
-            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-            return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('') === ADMIN_HASH;
-        }
-
+        function setAdminUI(isAdmin) { document.body.classList.toggle('is-admin', !!isAdmin); const btnAdd = document.getElementById('btn-add-player'); if (btnAdd) btnAdd.style.display = isAdmin ? 'block' : 'none'; }
+        async function isPasswordHashValid(pwd) { if (!pwd) return false; const msgBuffer = new TextEncoder().encode(pwd.trim() + PASSWORD_SALT); const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer); return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('') === ADMIN_HASH; }
         async function postJsonToGas(bodyObj, timeoutMs = 15000) {
             const controller = new AbortController(); const timer = setTimeout(() => controller.abort(), timeoutMs);
             const res = await fetch(GAS_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(bodyObj), signal: controller.signal });
-            clearTimeout(timer);
-            try { return JSON.parse(await res.text()); } catch (e) { return { success: false, message: "回應格式錯誤" }; }
+            clearTimeout(timer); try { return JSON.parse(await res.text()); } catch (e) { return { success: false, message: "回應格式錯誤" }; }
         }
-
         async function tryRestoreAdminSession() {
-            const pwd = localStorage.getItem('idn_admin_pwd');
-            if (!pwd) { setAdminUI(false); return false; }
+            const pwd = localStorage.getItem('idn_admin_pwd'); if (!pwd) { setAdminUI(false); return false; }
             if (!await isPasswordHashValid(pwd)) { localStorage.removeItem('idn_admin_pwd'); setAdminUI(false); return false; }
             setAdminUI(true); return true;
         }
 
-        function hideLoader() {
-            const loader = document.getElementById('loader'); if (!loader) return;
-            if (loaderInterval) { clearInterval(loaderInterval); loaderInterval = null; }
-            completeLoader();
-            setTimeout(() => { loader.style.opacity = '0'; setTimeout(() => { loader.style.display = 'none'; checkScroll(); }, 600); }, 600);
-        }
+        function hideLoader() { const loader = document.getElementById('loader'); if (!loader) return; if (loaderInterval) { clearInterval(loaderInterval); loaderInterval = null; } completeLoader(); setTimeout(() => { loader.style.opacity = '0'; setTimeout(() => { loader.style.display = 'none'; checkScroll(); }, 600); }, 600); }
 
         function applyCoreData(data) {
-            if (data.hero && data.hero.bgUrl) {
-                const heroUrl = convertDriveLink(data.hero.bgUrl);
-                setHeroImage(heroUrl);
-            }
+            if (data.hero && data.hero.bgUrl) { setHeroImage(convertDriveLink(data.hero.bgUrl)); }
             if (data.hero && data.hero.mvpUrl) { currentMvpEmbedUrl = getYouTubeEmbedUrl(data.hero.mvpUrl); document.getElementById('mvp-url-input').value = data.hero.mvpUrl; }
             currentMvpNumber = (data.hero && data.hero.mvpNumber) ? data.hero.mvpNumber : ""; document.getElementById('mvp-number-input').value = currentMvpNumber || "";
+
+            // 將後端傳來的 mvpStats 存入全域變數，以便印製星星
+            window.globalMvpStats = data.mvpStats || {};
 
             allSchedules = data.schedules || []; renderScheduleTable();
             document.getElementById('stadiums-list').innerHTML = (data.stadiums || []).map(l => `<option value="${l}">`).join('');
@@ -891,16 +830,12 @@ function updateLineupPublishButton() {
             allPlayers = data.players || []; posHeaders = data.posHeaders || [];
             renderPosCheckboxes(); renderPlayers(allPlayers);
             renderRosterList(allPlayers);
-// 處理發布的 Order List 資料
-const lineupRaw = data.lineup || null;
-// 規則：若後端回傳 cancel 旗標，或缺少有效 batters（或空陣容），視為「未發布」
-if (lineupRaw && (lineupRaw.cancel === true || !Array.isArray(lineupRaw.batters) || lineupRaw.batters.length === 0)) {
-    currentLineupData = null;
-} else {
-    currentLineupData = lineupRaw;
-}
-updateOrderListBtnVisibility();
-updateLineupPublishButton();}
+            
+            const lineupRaw = data.lineup || null;
+            if (lineupRaw && (lineupRaw.cancel === true || !Array.isArray(lineupRaw.batters) || lineupRaw.batters.length === 0)) { currentLineupData = null; } 
+            else { currentLineupData = lineupRaw; }
+            updateOrderListBtnVisibility(); updateLineupPublishButton();
+        }
 
         function applyVideos(videos) {
             const el = document.getElementById('video-container'); if (!el) return;
@@ -914,19 +849,44 @@ updateLineupPublishButton();}
         async function loadCoreData() {
             let data = await fetchJson(GAS_URL + "?action=get_core_data");
             if (data && data.error && String(data.error).includes("unknown action")) { data = await fetchJson(GAS_URL + "?action=get_all_data"); applyCoreData(data); applyVideos(data.videos || []); return { mode: 'legacy', data }; }
-            if (data.error) throw new Error(data.error);
-            applyCoreData(data); return { mode: 'core', data };
+            if (data.error) throw new Error(data.error); applyCoreData(data); return { mode: 'core', data };
         }
-        async function loadVideos() { try { const out = await fetchJson(GAS_URL + "?action=get_videos"); applyVideos(Array.isArray(out) ? out : (out.videos || [])); } catch (e) { document.getElementById('video-container').innerHTML = '<p style="color:#ef4444;text-align:center;width:100%;font-weight:700;">影片載入失敗</p>'; } }
+        async function loadVideos() { 
+            try { 
+                const out = await fetchJson(GAS_URL + "?action=get_videos"); 
+                
+                // 1. 處理影片區塊
+                const vids = Array.isArray(out) ? out : (out.videos || []);
+                applyVideos(vids); 
+                
+                // 2. 【分流】處理背景載入的 YouTube MVP 統計資料
+                if (out && out.mvpData) {
+                    const autoMvp = out.mvpData.autoMvp;
+                    const stats = out.mvpData.mvpStats;
+                    
+                    // A. 自動補上最新 MVP (前提是：Excel 後台中沒有手動填寫覆蓋)
+                    const manualUrl = document.getElementById('mvp-url-input').value;
+                    if (!manualUrl && autoMvp && autoMvp.url) {
+                        currentMvpEmbedUrl = getYouTubeEmbedUrl(autoMvp.url);
+                        currentMvpNumber = autoMvp.number;
+                    }
+                    
+                    // B. 把統計結果寫入全域變數，並觸發「重新繪製球員卡片」
+                    if (stats && Object.keys(stats).length > 0) {
+                        window.globalMvpStats = stats;
+                        // 重新繪製玩家列表 (只會更新顯示區，不會影響已經在拖曳排陣中的 roster 勾選狀態)
+                        renderPlayers(allPlayers);
+                    }
+                }
+            } catch (e) { 
+                document.getElementById('video-container').innerHTML = '<p style="color:#ef4444;text-align:center;width:100%;font-weight:700;">影片載入失敗</p>'; 
+            } 
+        }
         async function loadAllData() { const core = await loadCoreData(); if (core.mode === 'core') await loadVideos(); }
 
         window.onload = async function () {
-            try {
-                await tryRestoreAdminSession();
-                const core = await loadCoreData(); hideLoader();
-                if (core.mode === 'core') loadVideos();
-                initLineupBuilder(); 
-            } catch (e) { document.getElementById('loader').innerHTML = `<p style="color:#ef4444; font-weight:800; text-align:center;">系統載入失敗，請重整網頁。<br><small style="font-weight:500;">${e.message}</small></p>`; }
+            try { await tryRestoreAdminSession(); const core = await loadCoreData(); hideLoader(); if (core.mode === 'core') loadVideos(); initLineupBuilder(); } 
+            catch (e) { document.getElementById('loader').innerHTML = `<p style="color:#ef4444; font-weight:800; text-align:center;">系統載入失敗，請重整網頁。<br><small style="font-weight:500;">${e.message}</small></p>`; }
             document.getElementById('player-search').addEventListener('input', e => { const term = e.target.value.toLowerCase(); renderPlayers(allPlayers.filter(p => p.name.toLowerCase().includes(term) || p.number.toString().includes(term))); });
             window.addEventListener('popstate', closeAllModals); document.getElementById('admin-password').addEventListener('keydown', e => { if (e.key === 'Enter') verifyPassword(); }); initScrollSpy();
         };
@@ -940,23 +900,7 @@ updateLineupPublishButton();}
         function playVideo(id) { document.getElementById('yt-player').src = `https://www.youtube.com/embed/${id}?autoplay=1`; openModalCommon('video-modal'); }
         function playMvpVideo() { if(!currentMvpEmbedUrl) { showToast("尚未設定 MVP 影片", "error"); return; } if (typeof confetti === "function") confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#00558F', '#c5a059', '#ffffff'], zIndex: 10000 }); document.getElementById('hero-video-frame').src = currentMvpEmbedUrl; openModalCommon('hero-video-overlay'); }
         function convertDriveLink(url) { if (!url) return ""; if (url.includes("drive.google.com")) { const parts = url.match(/[-\w]{25,}/); if (parts) return `https://drive.google.com/thumbnail?id=${parts[0]}&sz=w1600`; } return url; }
-        
-        function setHeroImage(url) {
-            const img = document.getElementById('hero-bg-img');
-            if (!img || !url) return;
-            const bust = url + (url.includes('?') ? '&' : '?') + 'cb=' + Date.now();
-            img.onerror = () => {
-                const retry = url + (url.includes('?') ? '&' : '?') + 'retry=' + Date.now();
-                if (img.dataset.retried === '1') {
-                    console.warn('Hero image load failed:', url);
-                    return;
-                }
-                img.dataset.retried = '1';
-                img.src = retry;
-            };
-            img.onload = () => { img.dataset.retried = '0'; };
-            img.src = bust;
-        }
+        function setHeroImage(url) { const img = document.getElementById('hero-bg-img'); if (!img || !url) return; const bust = url + (url.includes('?') ? '&' : '?') + 'cb=' + Date.now(); img.onerror = () => { const retry = url + (url.includes('?') ? '&' : '?') + 'retry=' + Date.now(); if (img.dataset.retried === '1') return; img.dataset.retried = '1'; img.src = retry; }; img.onload = () => { img.dataset.retried = '0'; }; img.src = bust; }
         
         function handleImageUpload(input) {
             const file = input.files[0]; if (!file) return; const reader = new FileReader();
@@ -973,11 +917,26 @@ updateLineupPublishButton();}
                 const isMVP = (currentMvpNumber && p.number == currentMvpNumber);
                 const photoUrl = convertDriveLink(p.photo);
                 const actionBtns = `<div class="player-admin-overlay"><button class="btn-action-edit" onclick="editPlayer(${p.rowId})"><i class="fas fa-edit"></i></button><button class="btn-action-del" onclick="deletePlayer(${p.rowId})"><i class="fas fa-trash-alt"></i></button></div>`;
-                // UX調整：將 MVP 徽章放到 img 容器內
                 const badgeHtml = isMVP ? `<div class="mvp-badge-icon">Weekly MVP</div>` : '';
+                
+                // --- 繪製累積小星星 HTML ---
+                let starsHtml = '';
+                const starCount = window.globalMvpStats[p.number] || 0;
+                if (starCount > 0) {
+                    let starsArr = [];
+                    for(let i = 0; i < starCount; i++) {
+                        starsArr.push(`<i class="fas fa-star mvp-star"></i>`);
+                    }
+                    starsHtml = `<div class="mvp-stars-container">${starsArr.join('')}</div>`;
+                }
+
                 return `<div class="player-card reveal ${isMVP ? 'mvp-highlight-card' : ''}">
+                    ${badgeHtml}
                     ${actionBtns}
-                    <div class="player-img-container">${badgeHtml}${photoUrl ? `<img src="${photoUrl}" class="player-img" loading="lazy">` : `<i class="fas fa-user fa-4x" style="color:var(--border-light);"></i>`}</div>
+                    <div class="player-img-container">
+                        ${photoUrl ? `<img src="${photoUrl}" class="player-img" loading="lazy">` : `<i class="fas fa-user fa-4x" style="color:var(--border-light);"></i>`}
+                        ${starsHtml}
+                    </div>
                     <div class="player-info"><h3 class="player-name-full">#${p.number} ${p.name}</h3><span class="player-pos">${p.positions || '-'}</span></div>
                 </div>`;
             }).join('');
@@ -1023,21 +982,9 @@ updateLineupPublishButton();}
         async function sendToGas(action, payload, btnId, loadingText) {
             const pwd = localStorage.getItem('idn_admin_pwd'); if (!pwd) { showToast('無效的憑證，請重新登入', 'error'); return; }
             const btn = btnId ? document.getElementById(btnId) : null; const origText = btn ? btn.innerHTML : ''; if (btn) { btn.disabled = true; btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${loadingText}`; }
-            try { const res = await postJsonToGas({ action, password: pwd, payload }); if (res.success) {
-                    let msg = res.message || '資料已成功儲存';
-                    if (action === 'update_lineup' && payload && payload.cancel === true) msg = '已取消目前發布';
-                    showToast(msg, 'success'); await loadAllData(); closeAllModals(); } else { showToast(res.message || '操作失敗', 'error'); } } 
-            catch (e) { showToast('網路連線異常，請稍後再試', 'error'); } 
-finally {
-    if (btn) {
-        btn.disabled = false;
-        btn.innerHTML = origText;
-    }
-    // Lineup 發布按鈕：要以最新狀態覆蓋回復文字（避免 restore 覆蓋已切換狀態）
-    if (btnId === 'btn-submit-lineup') {
-        updateLineupPublishButton();
-    }
-}}
+            try { const res = await postJsonToGas({ action, password: pwd, payload }); if (res.success) { let msg = res.message || '資料已成功儲存'; if (action === 'update_lineup' && payload && payload.cancel === true) msg = '已取消目前發布'; showToast(msg, 'success'); await loadAllData(); closeAllModals(); } else { showToast(res.message || '操作失敗', 'error'); } } 
+            catch (e) { showToast('網路連線異常，請稍後再試', 'error'); } finally { if (btn) { btn.disabled = false; btn.innerHTML = origText; } if (btnId === 'btn-submit-lineup') { updateLineupPublishButton(); } }
+        }
 
         function renderScheduleTable() {
             const today = new Date(); today.setHours(0,0,0,0); const limit = new Date(today); limit.setMonth(today.getMonth() + (isViewAll ? 12 : 2));
@@ -1047,7 +994,7 @@ finally {
             desktop.innerHTML = list.map(s => `<tr><td class="col-date">${s.date}</td><td class="time-cell">${s.times.meet||'-'}</td><td class="time-cell">${s.times.g1||'-'}</td><td class="time-cell">${s.times.g2||'-'}</td><td class="time-cell">${s.times.g3||''}</td><td class="time-cell">${s.times.g4||''}</td><td class="col-loc">${s.location1}${s.location2?`<br><span style="font-size:0.85rem;color:var(--text-muted); font-weight:600;">${s.location2}</span>`:''}</td><td class="remark-cell">${s.remark||''}</td><td><div class="admin-actions"><button class="btn-action-edit" onclick="editSchedule(${s.rowId})"><i class="fas fa-edit"></i></button><button class="btn-action-del" onclick="deleteSchedule(${s.rowId})"><i class="fas fa-trash-alt"></i></button></div></td></tr>`).join('');
             mobile.innerHTML = list.map(s => {
                 let gHtml = ['g1','g2','g3','g4'].filter(k=>s.times[k]).map(k=>`<div class="game-tag"><span>${k.toUpperCase()}</span><strong>${s.times[k]}</strong></div>`).join('');
-                return `<div class="schedule-card reveal"><div class="mobile-admin-actions admin-actions"><button class="btn-action-edit" onclick="editSchedule(${s.rowId})"><i class="fas fa-edit"></i></button><button class="btn-action-del" onclick="deleteSchedule(${s.rowId})"><i class="fas fa-trash-alt"></i></button></div><div class="card-header"><div class="card-date">${s.date}</div><div class="card-loc"><i class="fas fa-map-marker-alt" style="color:var(--idn-gold);"></i> ${s.location1}</div></div><div class="card-body"><div class="card-row"><div class="card-label">集合時間</div><div class="card-value">${s.times.meet||'-'}</div></div><div class="card-row" style="align-items:flex-start;"><div class="card-label">開賽時間</div><div class="games-compact">${gHtml||'-'}</div></div>${s.remark?`<div class="card-remark"><i class="fas fa-info-circle" style="color:var(--idn-blue);"></i> ${s.remark}</div>`:''}</div></div>`;
+                return `<div class="schedule-card reveal"><div class="card-header"><div class="card-date">${s.date}</div><div class="card-loc"><i class="fas fa-map-marker-alt" style="color:var(--idn-gold);"></i> ${s.location1}</div></div><div class="card-body"><div class="card-row"><div class="card-label">集合時間</div><div class="card-value">${s.times.meet||'-'}</div></div><div class="card-row" style="align-items:flex-start;"><div class="card-label">開賽時間</div><div class="games-compact">${gHtml||'-'}</div></div>${s.remark?`<div class="card-remark"><i class="fas fa-info-circle" style="color:var(--idn-blue);"></i> ${s.remark}</div>`:''}<div class="mobile-admin-actions admin-actions"><button class="btn-action-edit" onclick="editSchedule(${s.rowId})"><i class="fas fa-edit"></i> 編輯</button><button class="btn-action-del" onclick="deleteSchedule(${s.rowId})"><i class="fas fa-trash-alt"></i> 刪除</button></div></div></div>`;
             }).join('');
             setTimeout(checkScroll, 50);
         }
@@ -1086,61 +1033,35 @@ finally {
             function getRuns(){ try{return JSON.parse(localStorage.getItem(LS.reactionRuns)||'[]').filter(x=>x>0&&x<5000);}catch(e){return [];} }
             function setRuns(arr){ try{localStorage.setItem(LS.reactionRuns, JSON.stringify(arr.slice(-20)));}catch(e){} }
             function updateGamesSummary(){
-                const runs = getRuns(), best = localStorage.getItem(LS.reactionBest);
-                const avg5 = runs.slice(-5).reduce((a,b)=>a+b,0)/Math.max(1,runs.slice(-5).length);
-                document.getElementById('best-reaction').textContent = `最佳：${fmtMs(best)}`;
-                document.getElementById('rg-last-pill').textContent = `最近：${runs.length?fmtMs(runs[runs.length-1]):'—'}`;
-                document.getElementById('rg-avg-pill').textContent = `近 5 平均：${runs.length?fmtMs(avg5):'—'}`;
-                const spark = document.getElementById('rg-spark');
-                if(spark && runs.length) {
-                    const max = Math.max(...runs), min = Math.min(...runs), span = Math.max(1, max-min);
-                    spark.innerHTML = runs.slice(-10).map(v=>`<div class="bar ${v<=min+span*.35?'good':v>=min+span*.8?'bad':''}" style="height:${Math.round(12+(v-min)/span*24)}px" title="${Math.round(v)}ms"></div>`).join('');
-                } else if(spark) spark.innerHTML = '';
+                const runs = getRuns(), best = localStorage.getItem(LS.reactionBest); const avg5 = runs.slice(-5).reduce((a,b)=>a+b,0)/Math.max(1,runs.slice(-5).length);
+                document.getElementById('best-reaction').textContent = `最佳：${fmtMs(best)}`; document.getElementById('rg-last-pill').textContent = `最近：${runs.length?fmtMs(runs[runs.length-1]):'—'}`; document.getElementById('rg-avg-pill').textContent = `近 5 平均：${runs.length?fmtMs(avg5):'—'}`;
+                const spark = document.getElementById('rg-spark'); if(spark && runs.length) { const max = Math.max(...runs), min = Math.min(...runs), span = Math.max(1, max-min); spark.innerHTML = runs.slice(-10).map(v=>`<div class="bar ${v<=min+span*.35?'good':v>=min+span*.8?'bad':''}" style="height:${Math.round(12+(v-min)/span*24)}px" title="${Math.round(v)}ms"></div>`).join(''); } else if(spark) spark.innerHTML = '';
             }
             window.resetMiniGame = function() { localStorage.removeItem(LS.reactionBest); localStorage.removeItem(LS.reactionRuns); updateGamesSummary(); showToast('訓練紀錄已清除', 'info'); };
-            
             window.openMiniGame = function() {
                 document.getElementById('gm-title').textContent = '動態反應測試'; document.getElementById('gm-meta').textContent = '規則：訊號變綠後立刻點擊（太早點算犯規）';
                 document.getElementById('gm-body').innerHTML = `<div class="gm-panel"><div style="display:flex;gap:16px;margin-bottom:20px;"><div class="rg-stat" style="flex:1"><div style="font-size:0.85rem;color:var(--text-muted);font-weight:700;">最佳成績</div><div style="font-weight:900;font-size:1.3rem;color:var(--idn-gold);" id="rg-best">${fmtMs(localStorage.getItem(LS.reactionBest))}</div></div><div class="rg-stat" style="flex:1"><div style="font-size:0.85rem;color:var(--text-muted);font-weight:700;">目前回合</div><div style="font-weight:900;font-size:1.3rem;color:var(--idn-blue);" id="rg-round">0 / 5</div></div></div><button class="gm-big-btn" id="rg-start"><i class="fas fa-play"></i> 開始 5 回合測試</button><div class="gm-reaction-area gm-reaction-wait" id="rg-area"><div style="font-size:1.4rem;font-weight:900;letter-spacing:1px;" id="rg-area-title">等待開始</div><div style="font-size:0.95rem;opacity:0.8;margin-top:6px;" id="rg-area-sub">點擊上方按鈕</div></div><div class="rg-progress">${Array(5).fill('<div class="rg-dot"></div>').join('')}</div></div>`;
                 openModalCommon('game-modal');
-                
                 let active = false, goTime = 0, timer = null, round = 0, scores = [], runs = getRuns();
                 const btn = document.getElementById('rg-start'), area = document.getElementById('rg-area');
-                
                 function setArea(state, title, sub) { area.className = `gm-reaction-area ${state}`; document.getElementById('rg-area-title').textContent = title; document.getElementById('rg-area-sub').textContent = sub; }
-                
-                btn.onclick = () => {
-                    round = 0; scores = []; btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 測試進行中...';
-                    document.querySelectorAll('.rg-dot').forEach(d => d.className='rg-dot');
-                    nextRound();
-                };
-                
-                function nextRound() {
-                    setArea('gm-reaction-wait', '準備...', '保持專注，隨時準備點擊');
-                    timer = setTimeout(() => { active = true; goTime = performance.now(); setArea('gm-reaction-go', '現在點擊！', ''); }, 800 + Math.random()*2500);
-                }
-                
+                btn.onclick = () => { round = 0; scores = []; btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 測試進行中...'; document.querySelectorAll('.rg-dot').forEach(d => d.className='rg-dot'); nextRound(); };
+                function nextRound() { setArea('gm-reaction-wait', '準備...', '保持專注，隨時準備點擊'); timer = setTimeout(() => { active = true; goTime = performance.now(); setArea('gm-reaction-go', '現在點擊！', ''); }, 800 + Math.random()*2500); }
                 area.onclick = () => {
-                    if (!timer && !active) return;
-                    clearTimeout(timer); timer = null;
+                    if (!timer && !active) return; clearTimeout(timer); timer = null;
                     if (!active) { setArea('gm-reaction-fail', '犯規！', '太早點擊了，不計成績'); setTimeout(nextRound, 1500); return; }
-                    
                     active = false; const ms = performance.now() - goTime; scores.push(ms); runs.push(ms); setRuns(runs);
                     const curBest = localStorage.getItem(LS.reactionBest); if(!curBest || ms < curBest) { localStorage.setItem(LS.reactionBest, ms); document.getElementById('rg-best').textContent = fmtMs(ms); }
                     setArea('gm-reaction-wait', `${Math.round(ms)} ms`, '不錯的反應！即將進入下一回合');
-                    
-                    document.querySelectorAll('.rg-dot')[round].className = 'rg-dot done'; round++;
-                    document.getElementById('rg-round').textContent = `${round} / 5`;
-                    
-                    if (round >= 5) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-redo"></i> 再來一局'; updateGamesSummary(); setArea('gm-reaction-wait', '訓練完成', `本次平均：${Math.round(scores.reduce((a,b)=>a+b,0)/5)} ms`); }
-                    else { setTimeout(nextRound, 1500); }
+                    document.querySelectorAll('.rg-dot')[round].className = 'rg-dot done'; round++; document.getElementById('rg-round').textContent = `${round} / 5`;
+                    if (round >= 5) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-redo"></i> 再來一局'; updateGamesSummary(); setArea('gm-reaction-wait', '訓練完成', `本次平均：${Math.round(scores.reduce((a,b)=>a+b,0)/5)} ms`); } else { setTimeout(nextRound, 1500); }
                 };
             };
             document.addEventListener('DOMContentLoaded', updateGamesSummary);
         })();
 
         // ==========================================
-        // [NEW] Lineup Builder 與 發布機制
+        // Lineup Builder 與 發布機制
         // ==========================================
         let benchSortable, battingSortable;
         let fieldSortables = [];
@@ -1171,7 +1092,7 @@ finally {
 
         function updateBattingColors() {
             document.querySelectorAll('#batting-list .player-chip').forEach(chip => { chip.classList.remove('pos-bg-of', 'pos-bg-if', 'pos-bg-p', 'pos-bg-c', 'pos-bg-ep'); });
-            document.querySelectorAll('.field-slot .player-chip').forEach(fChip => {
+            document.querySelectorAll('.field-slot:not(.view-field-slot) .player-chip').forEach(fChip => {
                 const id = fChip.getAttribute('data-id'); const pos = fChip.parentElement.getAttribute('data-pos');
                 const bChip = document.querySelector(`#batting-list .player-chip[data-id="${id}"]`);
                 if (bChip) {
@@ -1195,7 +1116,6 @@ finally {
             benchSortable = new Sortable(document.getElementById('bench-list'), { ...touchOptions, group: { name: 'shared', pull: true, put: true }, onAdd: function(evt) { const id = evt.item.getAttribute('data-id'); if (evt.from.id === 'batting-list') { const fChip = document.querySelector(`.field-slot .player-chip[data-id="${id}"]`); if (fChip) fChip.remove(); updateBattingColors(); } else if (evt.from.classList.contains('field-slot')) { evt.item.remove(); const original = document.querySelector(`#batting-list .player-chip[data-id="${id}"]`); if (original) document.getElementById('bench-list').appendChild(original); updateBattingColors(); } } });
             battingSortable = new Sortable(document.getElementById('batting-list'), { ...touchOptions, group: { name: 'shared', pull: 'clone', put: true }, onAdd: function(evt) { const id = evt.item.getAttribute('data-id'); if (evt.from.classList.contains('field-slot')) { evt.item.remove(); updateBattingColors(); return; } if (evt.from.id === 'bench-list') { const duplicates = document.querySelectorAll(`#batting-list .player-chip[data-id="${id}"]`); if (duplicates.length > 1) evt.item.remove(); } const currentBatters = document.querySelectorAll('#batting-list .player-chip'); if (currentBatters.length > 11) { showToast('打擊順序已達 11 棒上限', 'error'); if (evt.from.id === 'bench-list') { document.getElementById('bench-list').appendChild(evt.item); } else { evt.item.remove(); } } } });
             
-            // 排除顯示用 Modal 中的 view-field-slot
             document.querySelectorAll('.field-slot:not(.view-field-slot)').forEach(slot => {
                 fieldSortables.push(new Sortable(slot, { ...touchOptions, group: { name: 'field', pull: true, put: function(to, from) { return from.el.id === 'batting-list' || from.el.classList.contains('field-slot'); } }, onAdd: function(evt) { const item = evt.item; const id = item.getAttribute('data-id'); item.innerHTML = ''; Array.from(slot.children).forEach(child => { if (child !== item && child.classList.contains('player-chip')) child.remove(); }); document.querySelectorAll('.field-slot:not(.view-field-slot) .player-chip').forEach(chip => { if (chip !== item && chip.getAttribute('data-id') === id) chip.remove(); }); updateBattingColors(); } }));
             });
@@ -1215,16 +1135,14 @@ finally {
         }
 
         // ==========================================
-        // [NEW] 發布與檢視 先發陣容
+        // 發布與檢視 先發陣容
         // ==========================================
-        
-function submitLineup() {
-    // 已發布 -> 進入「取消目前發布」流程
-    if (isLineupPublished()) {
-        if (!confirm('要取消目前發布的先發陣容嗎？')) return;
-        sendToGas("update_lineup", { cancel: true }, "btn-submit-lineup", "取消中...");
-        return;
-    }
+        function submitLineup() {
+            if (isLineupPublished()) {
+                if (!confirm('要取消目前發布的先發陣容嗎？')) return;
+                sendToGas("update_lineup", { cancel: true }, "btn-submit-lineup", "取消中...");
+                return;
+            }
             const batters = [];
             document.querySelectorAll('#batting-list .player-chip').forEach(chip => {
                 batters.push({ id: chip.getAttribute('data-id'), num: chip.getAttribute('data-num'), name: chip.getAttribute('data-name') });
@@ -1242,21 +1160,18 @@ function submitLineup() {
                 bench.push({ id: chip.getAttribute('data-id'), num: chip.getAttribute('data-num'), name: chip.getAttribute('data-name') });
             });
             sendToGas("update_lineup", { batters, fielders, bench }, "btn-submit-lineup", "發布中...");
-}
+        }
 
-        // 確認發布按鈕是否要顯示 (3小時限制)
-        
-function updateOrderListBtnVisibility() {
-    const btn = document.getElementById('public-order-list-btn');
-    if (!btn) return;
+        function updateOrderListBtnVisibility() {
+            const btn = document.getElementById('public-order-list-btn');
+            if (!btn) return;
 
-    // 沒有有效發布：直接隱藏（同時清掉提醒動畫）
-    if (!isLineupPublished()) {
-        btn.style.display = 'none';
-        btn.classList.remove('new-update-alert');
-        return;
-    }
-const now = Date.now();
+            if (!isLineupPublished()) {
+                btn.style.display = 'none';
+                btn.classList.remove('new-update-alert');
+                return;
+            }
+            const now = Date.now();
             const diffMs = now - currentLineupData.timestamp;
             const threeHours = 3 * 60 * 60 * 1000;
             
@@ -1264,27 +1179,21 @@ const now = Date.now();
                 btn.style.display = 'none';
             } else {
                 btn.style.display = 'flex';
-                // 檢查瀏覽器紀錄是否已看過最新版本
                 const lastSeen = localStorage.getItem('idn_last_seen_lineup');
                 if (!lastSeen || parseInt(lastSeen) < currentLineupData.timestamp) {
                     btn.classList.add('new-update-alert');
                 } else {
                     btn.classList.remove('new-update-alert');
                 }
-                // 設定計時器，時間到自動隱藏
                 setTimeout(() => { btn.style.display = 'none'; }, threeHours - diffMs);
             }
         }
 
-        // 打開觀眾檢視用 Modal
         function openLineupView() {
             if (!currentLineupData) return;
-            
-            // 標記已看過，消除動畫
             localStorage.setItem('idn_last_seen_lineup', currentLineupData.timestamp.toString());
             document.getElementById('public-order-list-btn').classList.remove('new-update-alert');
             
-            // 建立球員 id -> 守位 對照
             const posById = {};
             if (currentLineupData.fielders) {
                 Object.keys(currentLineupData.fielders).forEach(pos => {
@@ -1293,20 +1202,16 @@ const now = Date.now();
                 });
             }
 
-            // 建立球員 id -> 常用守位（若未指派守位，預備席可用此顯示）
             const playerById = {};
             (allPlayers || []).forEach(p => { if (p && p.rowId != null) playerById[String(p.rowId)] = p; });
             const getPrimaryPos = (id) => {
                 const p = playerById[String(id)];
                 if (!p) return '';
                 if (Array.isArray(p.posRaw) && p.posRaw.length) return String(p.posRaw[0]).trim();
-                if (typeof p.positions === 'string' && p.positions.trim()) {
-                    return p.positions.split('/')[0].trim();
-                }
+                if (typeof p.positions === 'string' && p.positions.trim()) { return p.positions.split('/')[0].trim(); }
                 return '';
             };
 
-            // 填入先發打線（加入守位）
             const battingHtml = (currentLineupData.batters || []).map((b, i) => {
                 const pos = posById[String(b.id)] || '';
                 const posEl = pos ? `<span style="font-weight:900; color:var(--text-muted); font-size:0.95rem; letter-spacing:0.5px;">${pos}</span>` : `<span style="width:24px;"></span>`;
@@ -1319,7 +1224,6 @@ const now = Date.now();
             }).join('');
             document.getElementById('view-batting-list').innerHTML = battingHtml || `<div style="padding:12px; text-align:center; color:var(--text-muted); font-weight:700;">尚未發布</div>`;
 
-            // 填入預備席（同格式）
             const benchArr = Array.isArray(currentLineupData.bench) ? currentLineupData.bench : [];
             const benchHtml = benchArr.map((b, i) => {
                 const pos = '';
@@ -1333,7 +1237,6 @@ const now = Date.now();
             }).join('');
             document.getElementById('view-bench-list').innerHTML = benchHtml || `<div style="padding:12px; text-align:center; color:var(--text-muted); font-weight:700;">目前無預備席</div>`;
             
-            // 填入守備圖
             document.querySelectorAll('.view-field-slot').forEach(slot => {
                 slot.innerHTML = '';
                 const pos = slot.getAttribute('data-pos');
