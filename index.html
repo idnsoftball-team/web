@@ -409,9 +409,20 @@
             .schedule-mobile-list { display: flex; flex-direction: column; gap: 16px; width: 100%; }
             .schedule-card { background: var(--surface); border-radius: 16px; box-shadow: var(--card-shadow); border: 1px solid var(--border-light); overflow: hidden; width: 100%; position: relative; }
             
-            /* 【版型修復】把手機版的編輯/刪除按鈕移到卡片最下方，不重疊不遮擋 */
-            .mobile-admin-actions { position: relative; display: none; padding-top: 14px; margin-top: 14px; border-top: 1px dashed var(--border-light); justify-content: flex-end; gap: 10px; background: transparent; box-shadow: none; border-radius: 0; right: auto; top: auto; }
-            body.is-admin .mobile-admin-actions { display: flex; }
+            /* 【版型修復】把手機版的編輯/刪除按鈕只留圖示，且絕對定位於右側偏下方，不擋住球場名稱 */
+            .mobile-admin-actions { 
+                position: absolute; 
+                top: 48px; /* 往下移動 36px */
+                right: 12px; 
+                background: rgba(255,255,255,0.95); 
+                padding: 6px; 
+                border-radius: 10px; 
+                z-index: 5; 
+                display: none; 
+                border: 1px solid var(--border-light); 
+                box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
+            }
+            body.is-admin .mobile-admin-actions { display: flex; gap: 8px; }
             
             .card-header { background: var(--idn-gray); border-bottom: 1px solid var(--border-light); padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; }
             .card-date { font-weight: 900; font-size: 1.15rem; color: var(--idn-blue); letter-spacing: 0.5px; } 
@@ -1085,7 +1096,7 @@
 
         async function isPasswordHashValid(pwd) {
             if (!pwd) return false;
-            if (!window.crypto || !window.crypto.subtle) return false; // 避免舊環境報錯
+            if (!window.crypto || !window.crypto.subtle) return false; 
             const msgBuffer = new TextEncoder().encode(pwd.trim() + PASSWORD_SALT);
             const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
             return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('') === ADMIN_HASH;
@@ -1354,7 +1365,7 @@
         }
 
         // -----------------------------------------------------
-        // 渲染區塊邏輯
+        // 球員與賽程渲染邏輯
         // -----------------------------------------------------
         function renderPosCheckboxes() {
             const container = document.getElementById('pos-checks-container');
@@ -1405,6 +1416,127 @@
             setTimeout(checkScroll, 50);
         }
 
+        // --- 賽程表渲染 ---
+        function renderScheduleTable() {
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            const limit = new Date(today);
+            limit.setMonth(today.getMonth() + (isViewAll ? 12 : 2));
+            
+            const list = allSchedules.filter(s => {
+                const d = new Date(s.date.replace(/\//g,'-'));
+                return d >= today && d <= limit;
+            }).sort((a,b)=>new Date(a.date)-new Date(b.date));
+            
+            const desktop = document.getElementById('schedule-body-desktop');
+            const mobile = document.getElementById('schedule-body-mobile');
+            
+            if(list.length === 0) {
+                desktop.innerHTML = `<tr><td colspan="9" style="padding:40px; color:var(--text-muted); font-weight:700; font-size:1.1rem;">近期無賽程安排</td></tr>`;
+                mobile.innerHTML = `<p style="text-align:center; padding:30px; color:var(--text-muted); font-weight:700; font-size:1.1rem;">近期無賽程安排</p>`;
+                return;
+            }
+            
+            desktop.innerHTML = list.map(s => `<tr><td class="col-date">${s.date}</td><td class="time-cell">${s.times.meet||'-'}</td><td class="time-cell">${s.times.g1||'-'}</td><td class="time-cell">${s.times.g2||'-'}</td><td class="time-cell">${s.times.g3||''}</td><td class="time-cell">${s.times.g4||''}</td><td class="col-loc">${s.location1}${s.location2?`<br><span style="font-size:0.85rem;color:var(--text-muted); font-weight:600;">${s.location2}</span>`:''}</td><td class="remark-cell">${s.remark||''}</td><td><div class="admin-actions"><button class="btn-action-edit" onclick="editSchedule(${s.rowId})"><i class="fas fa-edit"></i></button><button class="btn-action-del" onclick="deleteSchedule(${s.rowId})"><i class="fas fa-trash-alt"></i></button></div></td></tr>`).join('');
+            
+            // 手機版：完美還原一開始的漂亮設計，只把編輯按鈕移到原本的絕對定位 top: 48px
+            mobile.innerHTML = list.map(s => {
+                let gHtml = ['g1','g2','g3','g4'].filter(k=>s.times[k]).map(k=>`<div class="game-tag"><span>${k.toUpperCase()}</span><strong>${s.times[k]}</strong></div>`).join('');
+                return `
+                <div class="schedule-card reveal">
+                    <div class="mobile-admin-actions admin-actions">
+                        <button class="btn-action-edit" onclick="editSchedule(${s.rowId})"><i class="fas fa-edit"></i></button>
+                        <button class="btn-action-del" onclick="deleteSchedule(${s.rowId})"><i class="fas fa-trash-alt"></i></button>
+                    </div>
+                    <div class="card-header">
+                        <div class="card-date">${s.date}</div>
+                        <div class="card-loc"><i class="fas fa-map-marker-alt" style="color:var(--idn-gold);"></i> ${s.location1}</div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-row"><div class="card-label">集合時間</div><div class="card-value">${s.times.meet||'-'}</div></div>
+                        <div class="card-row" style="align-items:flex-start;"><div class="card-label">開賽時間</div><div class="games-compact">${gHtml||'-'}</div></div>
+                        ${s.remark?`<div class="card-remark"><i class="fas fa-info-circle" style="color:var(--idn-blue);"></i> ${s.remark}</div>`:''}
+                    </div>
+                </div>`;
+            }).join('');
+            
+            setTimeout(checkScroll, 50);
+        }
+
+        function toggleScheduleView() {
+            isViewAll = !isViewAll;
+            document.getElementById('btn-see-more').innerHTML = isViewAll ? '<i class="fas fa-compress-arrows-alt"></i> 顯示近期賽程' : '<i class="fas fa-list"></i> 查看所有賽程';
+            renderScheduleTable();
+        }
+
+        // -----------------------------------------------------
+        // 表單與資料異動
+        // -----------------------------------------------------
+        window.editSchedule = function(rowId) {
+            const item = allSchedules.find(s=>s.rowId==rowId);
+            if(!item) return;
+            document.getElementById('m-rowId').value=rowId;
+            document.getElementById('form-title').innerText='修改賽程';
+            document.getElementById('m-date').value=item.date.replace(/\//g,'-');
+            document.getElementById('m-meet').value=item.times.meet;
+            ['g1','g2','g3','g4'].forEach(k => document.getElementById('m-'+k).value=item.times[k]?item.times[k].replace(':',''):'');
+            document.getElementById('m-loc1').value=item.location1;
+            document.getElementById('m-loc2').value=item.location2;
+            document.getElementById('m-remark').value=item.remark;
+            openAdminModalAuth('schedule');
+        };
+
+        window.deleteSchedule = function(rowId) {
+            if(confirm('確定刪除此賽程？')) sendToGas('delete_schedule', {rowId:rowId});
+        };
+
+        function submitSchedule() {
+            const payload = {
+                rowId: document.getElementById('m-rowId').value,
+                date: document.getElementById('m-date').value,
+                location1: document.getElementById('m-loc1').value,
+                location2: document.getElementById('m-loc2').value,
+                meet: document.getElementById('m-meet').value,
+                g1: document.getElementById('m-g1').value,
+                g2: document.getElementById('m-g2').value,
+                g3: document.getElementById('m-g3').value,
+                g4: document.getElementById('m-g4').value,
+                remark: document.getElementById('m-remark').value
+            };
+            if (!payload.date || !payload.location1) {
+                showToast('日期與主球場為必填', 'error');
+                return;
+            }
+            sendToGas(payload.rowId ? 'update_schedule' : 'add_schedule', payload, "btn-submit-schedule", "儲存中...");
+        }
+
+        function submitMvpData() {
+            sendToGas("update_mvp", {
+                url: document.getElementById('mvp-url-input').value,
+                number: document.getElementById('mvp-number-input').value
+            }, "btn-submit-mvp", "更新中...");
+        }
+
+        function submitPlayer() {
+            const name = document.getElementById('p-name').value;
+            const number = document.getElementById('p-number').value;
+            if(!name || !number) {
+                showToast('姓名與背號為必填', 'error');
+                return;
+            }
+            let pos = [];
+            document.querySelectorAll('.pos-checkbox:checked').forEach(cb => pos.push(cb.value));
+            
+            sendToGas("save_player", {
+                rowId: document.getElementById('p-rowId').value,
+                name: name,
+                number: number,
+                photoUrl: document.getElementById('p-photo-url').value,
+                newImageBase64: document.getElementById('p-photo-base64').value,
+                positions: pos
+            }, "btn-submit-player", "處理中...");
+        }
+
         function editPlayer(rowId) {
             const p = allPlayers.find(x => String(x.rowId) === String(rowId));
             if (!p) return;
@@ -1446,8 +1578,52 @@
             }
         }
 
+        async function sendToGas(action, payload, btnId, loadingText) {
+            const pwd = localStorage.getItem('idn_admin_pwd');
+            if (!pwd) {
+                showToast('無效的憑證，請重新登入', 'error');
+                return;
+            }
+            const btn = btnId ? document.getElementById(btnId) : null;
+            const origText = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${loadingText}`;
+            }
+            
+            try { 
+                const res = await postJsonToGas({ action, password: pwd, payload }); 
+                if (res.success) { 
+                    let msg = res.message || '資料已成功儲存'; 
+                    if (action === 'update_lineup' && payload && payload.cancel === true) {
+                        msg = '已取消目前發布';
+                    }
+                    showToast(msg, 'success'); 
+                    await loadAllData(); 
+                    if (action !== "force_refresh_yt") closeAllModals();
+                } else { 
+                    showToast(res.message || '操作失敗', 'error'); 
+                } 
+            } catch (e) { 
+                showToast('網路連線異常，請稍後再試', 'error'); 
+            } finally { 
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = origText;
+                } 
+                if (btnId === 'btn-submit-lineup') {
+                    updateLineupPublishButton();
+                } 
+            }
+        }
+
+        function forceRefreshYT() {
+            if(!confirm('這將清除快取並重新掃描 YouTube 頻道，確定要執行嗎？')) return;
+            sendToGas("force_refresh_yt", {}, null, "刷新中...");
+        }
+
         // -----------------------------------------------------
-        // Modal 控制邏輯
+        // Modal 視窗與 UI 控制
         // -----------------------------------------------------
         function openModalCommon(modalId) {
             const m = document.getElementById(modalId);
@@ -1546,51 +1722,8 @@
                 document.querySelectorAll('.pos-checkbox').forEach(cb => cb.checked = false);
             }
         }
-        
-        async function sendToGas(action, payload, btnId, loadingText) {
-            const pwd = localStorage.getItem('idn_admin_pwd');
-            if (!pwd) {
-                showToast('無效的憑證，請重新登入', 'error');
-                return;
-            }
-            const btn = btnId ? document.getElementById(btnId) : null;
-            const origText = btn ? btn.innerHTML : '';
-            if (btn) {
-                btn.disabled = true;
-                btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${loadingText}`;
-            }
-            
-            try { 
-                const res = await postJsonToGas({ action, password: pwd, payload }); 
-                if (res.success) { 
-                    let msg = res.message || '資料已成功儲存'; 
-                    if (action === 'update_lineup' && payload && payload.cancel === true) {
-                        msg = '已取消目前發布';
-                    }
-                    showToast(msg, 'success'); 
-                    await loadAllData(); 
-                    if (action !== "force_refresh_yt") closeAllModals();
-                } else { 
-                    showToast(res.message || '操作失敗', 'error'); 
-                } 
-            } catch (e) { 
-                showToast('網路連線異常，請稍後再試', 'error'); 
-            } finally { 
-                if (btn) {
-                    btn.disabled = false;
-                    btn.innerHTML = origText;
-                } 
-                if (btnId === 'btn-submit-lineup') {
-                    updateLineupPublishButton();
-                } 
-            }
-        }
 
-        function forceRefreshYT() {
-            if(!confirm('這將清除快取並重新掃描 YouTube 頻道，確定要執行嗎？')) return;
-            sendToGas("force_refresh_yt", {}, null, "刷新中...");
-        }
-
+        // --- 🏆 MVP 排行榜 ---
         function openMvpLeaderboard() {
             const stats = window.globalMvpStats || {};
             const listEl = document.getElementById('mvp-leaderboard-list');
@@ -1630,125 +1763,7 @@
         }
 
         // -----------------------------------------------------
-        // 賽程表控制邏輯
-        // -----------------------------------------------------
-        function renderScheduleTable() {
-            const today = new Date();
-            today.setHours(0,0,0,0);
-            const limit = new Date(today);
-            limit.setMonth(today.getMonth() + (isViewAll ? 12 : 2));
-            
-            const list = allSchedules.filter(s => {
-                const d = new Date(s.date.replace(/\//g,'-'));
-                return d >= today && d <= limit;
-            }).sort((a,b)=>new Date(a.date)-new Date(b.date));
-            
-            const desktop = document.getElementById('schedule-body-desktop');
-            const mobile = document.getElementById('schedule-body-mobile');
-            
-            if(list.length === 0) {
-                desktop.innerHTML = `<tr><td colspan="9" style="padding:40px; color:var(--text-muted); font-weight:700; font-size:1.1rem;">近期無賽程安排</td></tr>`;
-                mobile.innerHTML = `<p style="text-align:center; padding:30px; color:var(--text-muted); font-weight:700; font-size:1.1rem;">近期無賽程安排</p>`;
-                return;
-            }
-            
-            desktop.innerHTML = list.map(s => `<tr><td class="col-date">${s.date}</td><td class="time-cell">${s.times.meet||'-'}</td><td class="time-cell">${s.times.g1||'-'}</td><td class="time-cell">${s.times.g2||'-'}</td><td class="time-cell">${s.times.g3||''}</td><td class="time-cell">${s.times.g4||''}</td><td class="col-loc">${s.location1}${s.location2?`<br><span style="font-size:0.85rem;color:var(--text-muted); font-weight:600;">${s.location2}</span>`:''}</td><td class="remark-cell">${s.remark||''}</td><td><div class="admin-actions"><button class="btn-action-edit" onclick="editSchedule(${s.rowId})"><i class="fas fa-edit"></i></button><button class="btn-action-del" onclick="deleteSchedule(${s.rowId})"><i class="fas fa-trash-alt"></i></button></div></td></tr>`).join('');
-            
-            mobile.innerHTML = list.map(s => {
-                let gHtml = ['g1','g2','g3','g4'].filter(k=>s.times[k]).map(k=>`<div class="game-tag"><span>${k.toUpperCase()}</span><strong>${s.times[k]}</strong></div>`).join('');
-                return `<div class="schedule-card reveal">
-                    <div class="card-header">
-                        <div class="card-date">${s.date}</div>
-                        <div class="card-loc"><i class="fas fa-map-marker-alt" style="color:var(--idn-gold);"></i> ${s.location1}</div>
-                    </div>
-                    <div class="card-body">
-                        <div class="card-row"><div class="card-label">集合時間</div><div class="card-value">${s.times.meet||'-'}</div></div>
-                        <div class="card-row" style="align-items:flex-start;"><div class="card-label">開賽時間</div><div class="games-compact">${gHtml||'-'}</div></div>
-                        ${s.remark?`<div class="card-remark"><i class="fas fa-info-circle" style="color:var(--idn-blue);"></i> ${s.remark}</div>`:''}
-                        
-                        <div class="mobile-admin-actions admin-actions">
-                            <button class="btn-action-edit" onclick="editSchedule(${s.rowId})"><i class="fas fa-edit"></i> 編輯</button>
-                            <button class="btn-action-del" onclick="deleteSchedule(${s.rowId})"><i class="fas fa-trash-alt"></i> 刪除</button>
-                        </div>
-                    </div>
-                </div>`;
-            }).join('');
-            setTimeout(checkScroll, 50);
-        }
-
-        function toggleScheduleView() {
-            isViewAll = !isViewAll;
-            document.getElementById('btn-see-more').innerHTML = isViewAll ? '<i class="fas fa-compress-arrows-alt"></i> 顯示近期賽程' : '<i class="fas fa-list"></i> 查看所有賽程';
-            renderScheduleTable();
-        }
-
-        window.editSchedule = function(rowId) {
-            const item = allSchedules.find(s=>s.rowId==rowId);
-            if(!item) return;
-            document.getElementById('m-rowId').value=rowId;
-            document.getElementById('form-title').innerText='修改賽程';
-            document.getElementById('m-date').value=item.date.replace(/\//g,'-');
-            document.getElementById('m-meet').value=item.times.meet;
-            ['g1','g2','g3','g4'].forEach(k => document.getElementById('m-'+k).value=item.times[k]?item.times[k].replace(':',''):'');
-            document.getElementById('m-loc1').value=item.location1;
-            document.getElementById('m-loc2').value=item.location2;
-            document.getElementById('m-remark').value=item.remark;
-            openAdminModalAuth('schedule');
-        };
-
-        window.deleteSchedule = function(rowId) {
-            if(confirm('確定刪除此賽程？')) sendToGas('delete_schedule', {rowId:rowId});
-        };
-
-        function submitSchedule() {
-            const payload = {
-                rowId: document.getElementById('m-rowId').value,
-                date: document.getElementById('m-date').value,
-                location1: document.getElementById('m-loc1').value,
-                location2: document.getElementById('m-loc2').value,
-                meet: document.getElementById('m-meet').value,
-                g1: document.getElementById('m-g1').value,
-                g2: document.getElementById('m-g2').value,
-                g3: document.getElementById('m-g3').value,
-                g4: document.getElementById('m-g4').value,
-                remark: document.getElementById('m-remark').value
-            };
-            if (!payload.date || !payload.location1) {
-                showToast('日期與主球場為必填', 'error');
-                return;
-            }
-            sendToGas(payload.rowId ? 'update_schedule' : 'add_schedule', payload, "btn-submit-schedule", "儲存中...");
-        }
-
-        function submitMvpData() {
-            sendToGas("update_mvp", {
-                url: document.getElementById('mvp-url-input').value,
-                number: document.getElementById('mvp-number-input').value
-            }, "btn-submit-mvp", "更新中...");
-        }
-
-        function submitPlayer() {
-            const name = document.getElementById('p-name').value;
-            const number = document.getElementById('p-number').value;
-            if(!name || !number) {
-                showToast('姓名與背號為必填', 'error');
-                return;
-            }
-            let pos = [];
-            document.querySelectorAll('.pos-checkbox:checked').forEach(cb => pos.push(cb.value));
-            
-            sendToGas("save_player", {
-                rowId: document.getElementById('p-rowId').value,
-                name: name,
-                number: number,
-                photoUrl: document.getElementById('p-photo-url').value,
-                newImageBase64: document.getElementById('p-photo-base64').value,
-                positions: pos
-            }, "btn-submit-player", "處理中...");
-        }
-
-        // -----------------------------------------------------
-        // 視窗事件與導覽
+        // 頁面滾動與監聽
         // -----------------------------------------------------
         window.onclick = function(e) {
             if (e.target.classList.contains('modal')) userCloseModal();
