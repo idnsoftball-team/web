@@ -239,69 +239,6 @@
         .leaderboard-star-icon { color: var(--idn-gold); font-size: 1.1rem; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.2)); }
 
         /* =========================================
-           遊戲區塊 (Mini Games) 完整樣式還原
-        ========================================= */
-        #games { background: radial-gradient(circle at 20% 80%, rgba(197, 160, 89, 0.15), transparent 50%), linear-gradient(135deg, #1e293b 0%, #0f172a 100%); position: relative; }
-        #games::before { content: ''; position: absolute; top:0; left:0; width:100%; height:100%; background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px); background-size: 30px 30px; pointer-events: none; }
-        
-        .games-grid { display: grid; grid-template-columns: 1fr; gap: 20px; max-width: 900px; margin: 0 auto; padding: 0 16px; position: relative; z-index: 1; }
-        .game-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 28px; box-shadow: 0 15px 35px rgba(0,0,0,0.3); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease; }
-        .game-card:hover { transform: translateY(-6px); box-shadow: 0 20px 45px rgba(0,0,0,0.4), 0 0 30px rgba(197, 160, 89, 0.15); border-color: rgba(197, 160, 89, 0.4); }
-        
-        .games-toggle { width: calc(100% - 32px); max-width: 1100px; margin: 0 auto; border: 1px solid rgba(255,255,255,0.15); background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.03) 100%); border-radius: 20px; padding: 22px 28px; display:flex; align-items:center; justify-content: space-between; gap: 16px; cursor:pointer; text-align:left; color: white; box-shadow: 0 15px 35px rgba(0,0,0,0.25); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); position: relative; overflow:hidden; transition: all 0.3s; z-index: 1; }
-        .games-toggle:hover { border-color: var(--idn-gold); box-shadow: 0 15px 35px rgba(0,0,0,0.3), var(--stadium-glow); }
-        .games-toggle-title { font-size: 1.5rem; font-weight: 900; letter-spacing: 1px; }
-        
-        .games-badge { font-size: 0.9rem; font-weight: 800; padding: 6px 14px; border-radius: 20px; background: rgba(197, 160, 89, 0.2); border: 1px solid rgba(197, 160, 89, 0.5); color: var(--idn-gold); letter-spacing: 0.5px; }
-        .games-badge.ghost { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.2); color: rgba(255,255,255,0.8); }
-        
-        .games-panel { max-width: 1100px; margin: 0 auto; max-height: 0; opacity: 0; transform: translateY(-15px); overflow:hidden; pointer-events:none; transition: max-height 0.5s ease, opacity 0.4s ease, transform 0.4s ease; }
-        .games-panel.open { max-height: 2000px; opacity: 1; transform: translateY(0); pointer-events:auto; margin-top: 24px; }
-
-        .gcf-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
-        .gcf-title { display: flex; gap: 16px; align-items: center; }
-        .gcf-icon { font-size: 2rem; color: var(--idn-gold); background: rgba(197, 160, 89, 0.15); width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; border-radius: 16px; border: 1px solid rgba(197, 160, 89, 0.3); box-shadow: inset 0 0 10px rgba(197, 160, 89, 0.1); }
-        .gcf-name { font-weight: 900; font-size: 1.3rem; margin-bottom: 4px; color: #ffffff; letter-spacing: 0.5px; text-shadow: 0 1px 3px rgba(0,0,0,0.5); }
-        .gcf-desc { color: rgba(255,255,255,0.85); font-size: 0.95rem; }
-        
-        .gcf-pills { display: flex; gap: 10px; }
-        .gcf-pill { font-size: 0.9rem; font-weight: 600; padding: 6px 12px; border-radius: 10px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); font-family: 'Roboto Mono', monospace; color: #ffffff; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
-        
-        .gcf-mid { display: flex; gap: 16px; margin-bottom: 28px; flex-wrap: wrap; }
-        .gcf-metric { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 16px 20px; flex: 1; min-width: 140px; box-shadow: inset 0 2px 5px rgba(0,0,0,0.2); }
-        .gcf-metric .k { font-size: 0.85rem; font-weight: 700; color: rgba(255,255,255,0.8); margin-bottom: 6px; letter-spacing: 0.5px;}
-        .gcf-metric .v { font-size: 1.4rem; font-weight: 900; font-family: 'Roboto Mono'; color: var(--idn-gold); }
-        
-        .gcf-spark { height: 36px; display: flex; align-items: flex-end; gap: 4px; }
-        .gcf-spark .bar { width: 10px; background: rgba(255,255,255,0.2); border-radius: 3px 3px 0 0; transition: background 0.3s; }
-        .gcf-spark .bar.good { background: #10b981; box-shadow: 0 0 8px rgba(16,185,129,0.5); }
-        .gcf-spark .bar.bad { background: #ef4444; box-shadow: 0 0 8px rgba(239,68,68,0.5); }
-        
-        .game-actions { display: flex; gap: 16px; }
-
-        /* =========================================
-           Game Modal 遊戲進行專用
-        ========================================= */
-        .game-modal-content { background: var(--surface); color: var(--text-main); }
-        .game-modal-title { font-weight: 900; color: var(--idn-blue); font-size: 1.6rem; letter-spacing: 1px; }
-        .gm-panel { background: var(--idn-gray); border: 1px solid var(--border-light); border-radius: 20px; padding: 24px; }
-        .rg-stat { background: var(--surface); border: 1px solid var(--border-light); border-radius: 16px; padding: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); text-align: center; }
-        .gm-big-btn { width: 100%; padding: 18px; border-radius: 16px; border: none; background: linear-gradient(135deg, var(--idn-gold), #a38142); color: white; font-weight: 900; font-size: 1.2rem; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 6px 15px rgba(197, 160, 89, 0.3); margin: 20px 0; letter-spacing: 1px; }
-        .gm-big-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(197, 160, 89, 0.5); }
-        
-        .gm-reaction-area { margin-top: 16px; height: 260px; border-radius: 20px; display:flex; flex-direction: column; align-items:center; justify-content:center; font-weight: 900; user-select:none; cursor: pointer; transition: background 0.1s, transform 0.1s; }
-        .gm-reaction-area:active { transform: scale(0.98); }
-        .gm-reaction-wait { background: var(--border-light); color: var(--text-muted); border: 3px dashed #cbd5e1; }
-        .gm-reaction-go { background: #10b981; color: white; box-shadow: inset 0 0 0 6px rgba(255,255,255,0.3), 0 15px 40px rgba(16,185,129,0.5); border: none; }
-        .gm-reaction-fail { background: #ef4444; color: white; border: none; box-shadow: 0 10px 30px rgba(239,68,68,0.4); }
-
-        .rg-progress { display: flex; gap: 12px; justify-content: center; margin-top: 24px; }
-        .rg-dot { width: 14px; height: 14px; border-radius: 50%; background: var(--border-light); transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .rg-dot.active { background: var(--idn-gold); box-shadow: 0 0 0 4px rgba(197, 160, 89, 0.2); transform: scale(1.3); }
-        .rg-dot.done { background: #10b981; }
-
-
-        /* =========================================
            排陣系統 (Lineup Builder) 
         ========================================= */
         #lineup-builder { background: var(--surface); padding: 3rem 5%; border-top: 1px solid var(--border-light); }
@@ -472,10 +409,10 @@
             .schedule-mobile-list { display: flex; flex-direction: column; gap: 16px; width: 100%; }
             .schedule-card { background: var(--surface); border-radius: 16px; box-shadow: var(--card-shadow); border: 1px solid var(--border-light); overflow: hidden; width: 100%; position: relative; }
             
-            /* 【賽程編輯鈕】手機版絕對定位，調整至右方偏下，不擋住球場 */
+            /* 【版型修復】把手機版的編輯/刪除按鈕只留圖示，且絕對定位於右側偏下方，不擋住球場名稱 */
             .mobile-admin-actions { 
                 position: absolute; 
-                top: 48px; 
+                top: 48px; /* 往下移動 36px */
                 right: 12px; 
                 background: rgba(255,255,255,0.95); 
                 padding: 6px; 
@@ -489,7 +426,7 @@
             
             .card-header { background: var(--idn-gray); border-bottom: 1px solid var(--border-light); padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; }
             .card-date { font-weight: 900; font-size: 1.15rem; color: var(--idn-blue); letter-spacing: 0.5px; } 
-            .card-loc { font-size: 0.95rem; color: var(--text-main); font-weight: 700; margin-right: 40px; display: flex; align-items: center; gap: 6px; }
+            .card-loc { font-size: 0.95rem; color: var(--text-main); font-weight: 700; display: flex; align-items: center; gap: 6px; }
             .card-body { padding: 18px; } 
             .card-row { display: flex; margin-bottom: 12px; align-items: center; font-size: 0.95rem; }
             .card-label { color: var(--text-muted); font-weight: 700; width: 65px; flex-shrink: 0; font-size: 0.9rem; } 
@@ -540,6 +477,26 @@
         .admin-tabs::-webkit-scrollbar { display: none; }
         .admin-tab { padding: 12px 20px; cursor: pointer; font-weight: 700; color: var(--text-muted); border-bottom: 3px solid transparent; margin-bottom: -2px; transition: all 0.2s; white-space: nowrap; font-size: 1.05rem; }
         .admin-tab.active { color: var(--idn-blue); border-bottom-color: var(--idn-blue); }
+
+        /* --- Mini Games --- */
+        #games { background: radial-gradient(circle at 20% 80%, rgba(197, 160, 89, 0.15), transparent 50%), linear-gradient(135deg, #1e293b 0%, #0f172a 100%); position: relative; }
+        #games::before { content: ''; position: absolute; top:0; left:0; width:100%; height:100%; background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px); background-size: 30px 30px; pointer-events: none; }
+        .games-grid { display: grid; grid-template-columns: 1fr; gap: 20px; max-width: 900px; margin: 0 auto; padding: 0 16px; position: relative; z-index: 1; }
+        .game-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 28px; box-shadow: 0 15px 35px rgba(0,0,0,0.3); backdrop-filter: blur(12px); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease; }
+        .game-card:hover { transform: translateY(-6px); box-shadow: 0 20px 45px rgba(0,0,0,0.4), 0 0 30px rgba(197, 160, 89, 0.15); border-color: rgba(197, 160, 89, 0.4); }
+        .games-toggle{ width: calc(100% - 32px); max-width: 1100px; margin: 0 auto; border: 1px solid rgba(255,255,255,0.15); background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.03) 100%); border-radius: 20px; padding: 22px 28px; display:flex; align-items:center; justify-content: space-between; gap: 16px; cursor:pointer; color: white; box-shadow: 0 15px 35px rgba(0,0,0,0.25); backdrop-filter: blur(12px); position: relative; overflow:hidden; transition: all 0.3s; z-index: 1; }
+        .games-badge{ font-size: 0.9rem; font-weight: 800; padding: 6px 14px; border-radius: 20px; background: rgba(197, 160, 89, 0.2); border: 1px solid rgba(197, 160, 89, 0.5); color: var(--idn-gold); }
+        .games-panel{ max-width: 1100px; margin: 0 auto; max-height: 0; opacity: 0; transform: translateY(-15px); overflow:hidden; pointer-events:none; transition: max-height 0.5s ease, opacity 0.4s ease, transform 0.4s ease; }
+        .games-panel.open{ max-height: 2000px; opacity: 1; transform: translateY(0); pointer-events:auto; margin-top: 24px; }
+        .gcf-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+        .gcf-title { display: flex; gap: 16px; align-items: center; }
+        .gcf-icon { font-size: 2rem; color: var(--idn-gold); background: rgba(197, 160, 89, 0.15); width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; border-radius: 16px; border: 1px solid rgba(197, 160, 89, 0.3); }
+        .gcf-name { font-weight: 900; font-size: 1.3rem; margin-bottom: 4px; color: #ffffff; }
+        .gcf-mid { display: flex; gap: 16px; margin-bottom: 28px; flex-wrap: wrap; }
+        .gcf-metric { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 16px 20px; flex: 1; min-width: 140px; }
+        .gcf-metric .k { font-size: 0.85rem; font-weight: 700; color: rgba(255,255,255,0.8); margin-bottom: 6px; }
+        .gcf-metric .v { font-size: 1.4rem; font-weight: 900; font-family: 'Roboto Mono'; color: var(--idn-gold); }
+        .game-actions { display: flex; gap: 16px; }
     </style>
 </head>
 <body>
@@ -1482,7 +1439,7 @@
             
             desktop.innerHTML = list.map(s => `<tr><td class="col-date">${s.date}</td><td class="time-cell">${s.times.meet||'-'}</td><td class="time-cell">${s.times.g1||'-'}</td><td class="time-cell">${s.times.g2||'-'}</td><td class="time-cell">${s.times.g3||''}</td><td class="time-cell">${s.times.g4||''}</td><td class="col-loc">${s.location1}${s.location2?`<br><span style="font-size:0.85rem;color:var(--text-muted); font-weight:600;">${s.location2}</span>`:''}</td><td class="remark-cell">${s.remark||''}</td><td><div class="admin-actions"><button class="btn-action-edit" onclick="editSchedule(${s.rowId})"><i class="fas fa-edit"></i></button><button class="btn-action-del" onclick="deleteSchedule(${s.rowId})"><i class="fas fa-trash-alt"></i></button></div></td></tr>`).join('');
             
-            // 手機版賽程卡片：編輯按鈕恢復至不擋字的位置 (top: 48px, right: 12px)
+            // 手機版：完美還原一開始的漂亮設計，只把編輯按鈕移到原本的絕對定位 top: 48px
             mobile.innerHTML = list.map(s => {
                 let gHtml = ['g1','g2','g3','g4'].filter(k=>s.times[k]).map(k=>`<div class="game-tag"><span>${k.toUpperCase()}</span><strong>${s.times[k]}</strong></div>`).join('');
                 return `
@@ -1621,9 +1578,152 @@
             }
         }
 
+        async function sendToGas(action, payload, btnId, loadingText) {
+            const pwd = localStorage.getItem('idn_admin_pwd');
+            if (!pwd) {
+                showToast('無效的憑證，請重新登入', 'error');
+                return;
+            }
+            const btn = btnId ? document.getElementById(btnId) : null;
+            const origText = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${loadingText}`;
+            }
+            
+            try { 
+                const res = await postJsonToGas({ action, password: pwd, payload }); 
+                if (res.success) { 
+                    let msg = res.message || '資料已成功儲存'; 
+                    if (action === 'update_lineup' && payload && payload.cancel === true) {
+                        msg = '已取消目前發布';
+                    }
+                    showToast(msg, 'success'); 
+                    await loadAllData(); 
+                    if (action !== "force_refresh_yt") closeAllModals();
+                } else { 
+                    showToast(res.message || '操作失敗', 'error'); 
+                } 
+            } catch (e) { 
+                showToast('網路連線異常，請稍後再試', 'error'); 
+            } finally { 
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = origText;
+                } 
+                if (btnId === 'btn-submit-lineup') {
+                    updateLineupPublishButton();
+                } 
+            }
+        }
+
+        function forceRefreshYT() {
+            if(!confirm('這將清除快取並重新掃描 YouTube 頻道，確定要執行嗎？')) return;
+            sendToGas("force_refresh_yt", {}, null, "刷新中...");
+        }
+
         // -----------------------------------------------------
-        // MVP 排行榜 Modal
+        // Modal 視窗與 UI 控制
         // -----------------------------------------------------
+        function openModalCommon(modalId) {
+            const m = document.getElementById(modalId);
+            m.style.display = 'flex';
+            m.style.opacity = 0;
+            requestAnimationFrame(() => {
+                m.style.transition = 'opacity 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                m.style.opacity = 1;
+            });
+            history.pushState({modal: true}, null, location.href);
+            isModalOpen = true;
+        }
+
+        function closeAllModals() {
+            document.querySelectorAll('.modal, #hero-video-overlay').forEach(m => {
+                m.style.opacity = 0;
+                setTimeout(() => m.style.display = 'none', 300);
+            });
+            document.getElementById('hero-video-frame').src = "";
+            document.getElementById('yt-player').src = "";
+            isModalOpen = false;
+            resetForm('schedule');
+            resetForm('player');
+        }
+
+        function userCloseModal() {
+            if (isModalOpen) history.back();
+        }
+
+        function openAdminModal(tab) {
+            resetForm(tab);
+            openAdminModalAuth(tab);
+        }
+        
+        async function openAdminModalAuth(tab) {
+            adminTargetTab = tab || 'schedule';
+            openModalCommon('admin-modal');
+            const pwd = localStorage.getItem('idn_admin_pwd');
+            
+            if (pwd && await isPasswordHashValid(pwd)) {
+                setAdminUI(true);
+                document.getElementById('password-step').style.display = 'none';
+                document.getElementById('admin-panel').style.display = 'block';
+                switchTab(adminTargetTab);
+            } else {
+                setAdminUI(false);
+                document.getElementById('password-step').style.display = 'block';
+                document.getElementById('admin-panel').style.display = 'none';
+                document.getElementById('admin-password').value = '';
+            }
+        }
+
+        async function verifyPassword() {
+            const pwd = document.getElementById('admin-password').value.trim();
+            if (!pwd) {
+                showToast('請輸入密碼', 'error');
+                return;
+            }
+            if (!await isPasswordHashValid(pwd)) {
+                showToast('密碼錯誤，請重試', 'error');
+                return;
+            }
+            localStorage.setItem('idn_admin_pwd', pwd);
+            setAdminUI(true);
+            document.getElementById('password-step').style.display = 'none';
+            document.getElementById('admin-panel').style.display = 'block';
+            switchTab(adminTargetTab);
+            showToast('身分解鎖成功', 'success');
+        }
+
+        function logoutAdmin() {
+            localStorage.removeItem('idn_admin_pwd');
+            setAdminUI(false);
+            closeAllModals();
+            showToast('已安全登出', 'info');
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+            document.querySelector(`.admin-tab[onclick="switchTab('${tab}')"]`).classList.add('active');
+            document.getElementById(`tab-${tab}`).style.display = 'block';
+        }
+
+        function resetForm(tab) {
+            if (tab === 'schedule') {
+                document.getElementById('m-rowId').value = "";
+                document.getElementById('form-title').innerText = '新增賽程';
+                ['m-date','m-meet','m-g1','m-g2','m-g3','m-g4','m-loc1','m-loc2','m-remark'].forEach(id => document.getElementById(id).value="");
+            } else if (tab === 'player') {
+                document.getElementById('p-rowId').value = "";
+                document.getElementById('p-form-title').innerText = '新增球員';
+                ['p-name','p-number','p-photo-url','p-photo-base64'].forEach(id => document.getElementById(id).value="");
+                document.getElementById('p-photo-preview').style.display = 'none';
+                document.getElementById('p-photo-placeholder').style.display = 'block';
+                document.querySelectorAll('.pos-checkbox').forEach(cb => cb.checked = false);
+            }
+        }
+
+        // --- 🏆 MVP 排行榜 ---
         function openMvpLeaderboard() {
             const stats = window.globalMvpStats || {};
             const listEl = document.getElementById('mvp-leaderboard-list');
@@ -1725,7 +1825,7 @@
         });
 
         // -----------------------------------------------------
-        // 小遊戲模組 (Reaction Game) 完整功能還原
+        // 小遊戲模組 (Reaction Game)
         // -----------------------------------------------------
         (function(){
             const LS = { reactionBest: 'idn_game_reaction_best', reactionRuns: 'idn_game_reaction_runs' };
@@ -2062,113 +2162,6 @@
                     clearAssignMode();
                 }
             });
-        }
-
-        // ==========================================
-        // 陣容展示 (Lineup View)
-        // ==========================================
-        function openLineupView() {
-            if (!currentLineupData) return;
-            
-            localStorage.setItem('idn_last_seen_lineup', currentLineupData.timestamp.toString());
-            document.getElementById('public-order-list-btn').classList.remove('new-update-alert');
-            
-            const posById = {};
-            if (currentLineupData.fielders) {
-                Object.keys(currentLineupData.fielders).forEach(pos => {
-                    const f = currentLineupData.fielders[pos];
-                    if (f && f.id) posById[String(f.id)] = pos;
-                });
-            }
-
-            const playerById = {};
-            (allPlayers || []).forEach(p => { 
-                if (p && p.rowId != null) playerById[String(p.rowId)] = p; 
-            });
-            
-            const getPrimaryPos = (id) => {
-                const p = playerById[String(id)];
-                if (!p) return '';
-                if (Array.isArray(p.posRaw) && p.posRaw.length) return String(p.posRaw[0]).trim();
-                if (typeof p.positions === 'string' && p.positions.trim()) {
-                    return p.positions.split('/')[0].trim();
-                }
-                return '';
-            };
-
-            const battingHtml = (currentLineupData.batters || []).map((b, i) => {
-                const pos = posById[String(b.id)] || '';
-                const posEl = pos ? `<span style="font-weight:900; color:var(--text-muted); font-size:0.95rem; letter-spacing:0.5px;">${pos}</span>` : `<span style="width:24px;"></span>`;
-                return `
-                <div style="display:flex; align-items:center; padding:10px 12px; border-bottom:1px solid var(--border-light); background:var(--idn-gray); border-radius:8px;">
-                    <span style="font-weight:900; color:var(--idn-gold); width:28px; font-size:1.1rem;">${i+1}.</span>
-                    <span style="flex:1; font-weight:800; color:var(--idn-blue); font-size:1.05rem;">#${b.num} ${b.name}</span>
-                    ${posEl}
-                </div>`;
-            }).join('');
-            document.getElementById('view-batting-list').innerHTML = battingHtml || `<div style="padding:12px; text-align:center; color:var(--text-muted); font-weight:700;">尚未發布</div>`;
-
-            const benchArr = Array.isArray(currentLineupData.bench) ? currentLineupData.bench : [];
-            const benchHtml = benchArr.map((b, i) => {
-                const pos = '';
-                const posEl = pos ? `<span style="font-weight:900; color:var(--text-muted); font-size:0.95rem; letter-spacing:0.5px;">${pos}</span>` : `<span style="width:24px;"></span>`;
-                return `
-                <div style="display:flex; align-items:center; padding:10px 12px; border-bottom:1px solid var(--border-light); background:var(--idn-gray); border-radius:8px;">
-                    <span style="font-weight:900; color:var(--idn-gold); width:28px; font-size:1.1rem;">${i+1}.</span>
-                    <span style="flex:1; font-weight:800; color:var(--idn-blue); font-size:1.05rem;">#${b.num} ${b.name}</span>
-                    ${posEl}
-                </div>`;
-            }).join('');
-            document.getElementById('view-bench-list').innerHTML = benchHtml || `<div style="padding:12px; text-align:center; color:var(--text-muted); font-weight:700;">目前無預備席</div>`;
-            
-            document.querySelectorAll('.view-field-slot').forEach(slot => {
-                slot.innerHTML = '';
-                const pos = slot.getAttribute('data-pos');
-                if (currentLineupData.fielders && currentLineupData.fielders[pos]) {
-                    slot.innerHTML = `<div style="position:absolute; width:100%; height:100%; top:0; left:0; border-radius:50%; background:var(--idn-blue); color:#fff; border:2px solid var(--idn-gold); display:flex; align-items:center; justify-content:center; font-size:1.05rem; font-weight:900; box-shadow:0 3px 8px rgba(0,0,0,0.4);">${currentLineupData.fielders[pos].num}</div>`;
-                }
-            });
-            
-            openModalCommon('lineup-view-modal');
-        }
-
-        async function sendToGas(action, payload, btnId, loadingText) {
-            const pwd = localStorage.getItem('idn_admin_pwd');
-            if (!pwd) {
-                showToast('無效的憑證，請重新登入', 'error');
-                return;
-            }
-            const btn = btnId ? document.getElementById(btnId) : null;
-            const origText = btn ? btn.innerHTML : '';
-            if (btn) {
-                btn.disabled = true;
-                btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${loadingText}`;
-            }
-            
-            try { 
-                const res = await postJsonToGas({ action, password: pwd, payload }); 
-                if (res.success) { 
-                    let msg = res.message || '資料已成功儲存'; 
-                    if (action === 'update_lineup' && payload && payload.cancel === true) {
-                        msg = '已取消目前發布';
-                    }
-                    showToast(msg, 'success'); 
-                    await loadAllData(); 
-                    if (action !== "force_refresh_yt") closeAllModals();
-                } else { 
-                    showToast(res.message || '操作失敗', 'error'); 
-                } 
-            } catch (e) { 
-                showToast('網路連線異常，請稍後再試', 'error'); 
-            } finally { 
-                if (btn) {
-                    btn.disabled = false;
-                    btn.innerHTML = origText;
-                } 
-                if (btnId === 'btn-submit-lineup') {
-                    updateLineupPublishButton();
-                } 
-            }
         }
     </script>
 </body>
