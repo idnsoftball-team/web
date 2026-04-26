@@ -1530,6 +1530,167 @@
             if(confirm('確定刪除此賽程？')) sendToGas('delete_schedule', {rowId:rowId});
         };
 
+        // --- 先發陣容發布 / 檢視 ---
+        function getPlayerMetaById(id) {
+            return allPlayers.find(p => String(p.rowId) === String(id) || String(p.id) === String(id)) || null;
+        }
+
+        function getFieldPositionById(id) {
+            const selectorId = String(id).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+            const chip = document.querySelector('.field-slot:not(.view-field-slot) .player-chip[data-id="' + selectorId + '"]');
+            return chip && chip.parentElement ? chip.parentElement.getAttribute('data-pos') : '';
+        }
+
+        function buildLineupPlayerFromChip(chip, order) {
+            const id = String(chip.getAttribute('data-id') || '');
+            const meta = getPlayerMetaById(id) || {};
+            const number = chip.getAttribute('data-num') || meta.number || '';
+            const name = chip.getAttribute('data-name') || meta.name || '';
+            const position = getFieldPositionById(id);
+            return {
+                order: order || null,
+                id: id,
+                rowId: id,
+                number: number,
+                num: number,
+                name: name,
+                position: position,
+                pos: position
+            };
+        }
+
+        function collectLineupPayload() {
+            const batters = Array.from(document.querySelectorAll('#batting-list .player-chip')).map((chip, idx) => buildLineupPlayerFromChip(chip, idx + 1));
+            const bench = Array.from(document.querySelectorAll('#bench-list .player-chip')).map((chip) => buildLineupPlayerFromChip(chip, null));
+            const fielding = {};
+
+            document.querySelectorAll('.field-slot:not(.view-field-slot)').forEach(slot => {
+                const pos = slot.getAttribute('data-pos');
+                const chip = slot.querySelector('.player-chip');
+                if (!pos || !chip) return;
+                const player = buildLineupPlayerFromChip(chip, null);
+                player.position = pos;
+                player.pos = pos;
+                fielding[pos] = player;
+            });
+
+            return {
+                timestamp: Date.now(),
+                cancel: false,
+                batters: batters,
+                bench: bench,
+                fielding: fielding
+            };
+        }
+
+        function submitLineup() {
+            if (isLineupPublished()) {
+                if (!confirm('確定要取消目前發布的先發陣容？')) return;
+                sendToGas('update_lineup', {
+                    cancel: true,
+                    timestamp: Date.now(),
+                    batters: [],
+                    bench: [],
+                    fielding: {}
+                }, 'btn-submit-lineup', '取消中...');
+                return;
+            }
+
+            const payload = collectLineupPayload();
+            if (!payload.batters.length) {
+                showToast('請先加入先發打序，再發布陣容', 'error');
+                return;
+            }
+
+            if (payload.batters.length < 9 && !confirm('目前先發打序只有 ' + payload.batters.length + ' 人，確定仍要發布？')) {
+                return;
+            }
+
+            const assignedPositions = Object.keys(payload.fielding).filter(Boolean).length;
+            if (assignedPositions < Math.min(payload.batters.length, 9) && !confirm('目前只有 ' + assignedPositions + ' 個守備位置已安排，確定仍要發布？')) {
+                return;
+            }
+
+            sendToGas('update_lineup', payload, 'btn-submit-lineup', '發布中...');
+        }
+
+        function escapeHtmlForLineup(value) {
+            return String(value ?? '').replace(/[&<>'"]/g, function(ch) {
+                return ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'})[ch];
+            });
+        }
+
+        function normalizeLineupPlayer(player, fallbackOrder) {
+            player = player || {};
+            const id = String(player.id || player.rowId || player.playerId || '');
+            const meta = id ? getPlayerMetaById(id) : null;
+            const number = player.number || player.num || (meta && meta.number) || '';
+            const name = player.name || (meta && meta.name) || '';
+            const position = player.position || player.pos || '';
+            return {
+                id: id,
+                rowId: id,
+                order: player.order || fallbackOrder || null,
+                number: number,
+                num: number,
+                name: name,
+                position: position,
+                pos: position
+            };
+        }
+
+        function getPublishedFieldingPlayer(pos) {
+            if (!currentLineupData) return null;
+            const fielding = currentLineupData.fielding || currentLineupData.positions || currentLineupData.defense || {};
+            if (Array.isArray(fielding)) {
+                const item = fielding.find(x => String(x.position || x.pos || '').toUpperCase() === String(pos).toUpperCase());
+                return item ? normalizeLineupPlayer(item, null) : null;
+            }
+            const item = fielding[pos];
+            return item ? normalizeLineupPlayer(item, null) : null;
+        }
+
+        function openLineupView() {
+            if (!isLineupPublished()) {
+                showToast('目前尚未發布先發陣容', 'info');
+                return;
+            }
+
+            const batters = (currentLineupData.batters || []).map((p, idx) => normalizeLineupPlayer(p, idx + 1));
+            const bench = (currentLineupData.bench || []).map((p) => normalizeLineupPlayer(p, null));
+
+            document.querySelectorAll('#lineup-view-modal .view-field-slot').forEach(slot => {
+                slot.innerHTML = '';
+                const pos = slot.getAttribute('data-pos');
+                const player = getPublishedFieldingPlayer(pos);
+                if (!player) return;
+                const chip = document.createElement('div');
+                chip.className = 'player-chip';
+                chip.setAttribute('data-id', player.id || '');
+                chip.setAttribute('data-num', player.number || '');
+                chip.setAttribute('data-name', player.name || '');
+                chip.title = (pos + ' #' + (player.number || '') + ' ' + (player.name || '')).trim();
+                slot.appendChild(chip);
+            });
+
+            const battingEl = document.getElementById('view-batting-list');
+            battingEl.innerHTML = batters.map((p, idx) => {
+                const pos = p.position ? ' <small style="opacity:.65;font-weight:800;">' + escapeHtmlForLineup(p.position) + '</small>' : '';
+                return '<div class="player-chip" style="cursor:default;"><span>' + (idx + 1) + '. #' + escapeHtmlForLineup(p.number) + ' ' + escapeHtmlForLineup(p.name) + pos + '</span></div>';
+            }).join('') || '<p style="text-align:center;color:var(--text-muted);font-weight:700;">尚無打序資料</p>';
+
+            const benchEl = document.getElementById('view-bench-list');
+            benchEl.innerHTML = bench.map(p => '<div class="player-chip" style="cursor:default;border-color:#cbd5e1;color:var(--text-main);"><span>#' + escapeHtmlForLineup(p.number) + ' ' + escapeHtmlForLineup(p.name) + '</span></div>').join('') || '<p style="text-align:center;color:var(--text-muted);font-weight:700;">無預備席資料</p>';
+
+            if (currentLineupData.timestamp) {
+                localStorage.setItem('idn_last_seen_lineup', String(currentLineupData.timestamp));
+                updateOrderListBtnVisibility();
+            }
+
+            openModalCommon('lineup-view-modal');
+        }
+
+
         function submitSchedule() {
             const payload = {
                 rowId: document.getElementById('m-rowId').value,
@@ -2220,6 +2381,7 @@
                         newFChip.className = 'player-chip';
                         newFChip.setAttribute('data-id', activeAssignId);
                         newFChip.setAttribute('data-num', num);
+                        newFChip.setAttribute('data-name', activeAssignChip.getAttribute('data-name') || '');
                         fieldSlot.appendChild(newFChip);
                         clearAssignMode();
                         updateBattingColors();
