@@ -1,4 +1,4 @@
-const CACHE_NAME = 'idn-softball-v72-lineup-chip-iosflip-fix';
+const CACHE_NAME = 'idn-softball-v73-lineup-badge-offset';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
