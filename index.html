@@ -183,7 +183,7 @@
         .search-icon { position: absolute; top: 50%; left: 20px; transform: translateY(-50%); color: var(--text-muted); font-size: 1.2rem; }
         
         .players-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 24px; }
-        .player-card { background: var(--surface); border-radius: 16px; overflow: hidden; box-shadow: var(--card-shadow); text-align: center; border: 1px solid var(--border-light); transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; }
+        .player-card { background: var(--surface); border-radius: 16px; overflow: hidden; box-shadow: var(--card-shadow); text-align: center; border: 1px solid var(--border-light); transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; cursor: pointer; }
         .player-card:hover { transform: translateY(-8px); box-shadow: var(--hover-shadow); border-color: rgba(0, 85, 143, 0.3); }
         
         .player-img-container { width: 100%; height: 230px; background: var(--border-light); display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
@@ -198,6 +198,232 @@
         
         .player-admin-overlay { position: absolute; top: 12px; right: 12px; display: none; gap: 8px; background: rgba(255,255,255,0.95); backdrop-filter: blur(4px); border-radius: 8px; padding: 6px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); z-index: 20; border: 1px solid rgba(0,0,0,0.05); }
         body.is-admin .player-admin-overlay { display: flex; }
+
+
+        /* =========================================
+           球員詳細翻頁卡 Modal
+        ========================================= */
+        #player-detail-modal .modal-content {
+            max-width: 520px;
+            padding: 18px;
+            background: transparent;
+            box-shadow: none;
+            border: none;
+            overflow: visible;
+        }
+        .player-detail-close {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0.45);
+            background: rgba(15, 23, 42, 0.88);
+            color: #fff;
+            font-size: 1.6rem;
+            line-height: 1;
+            cursor: pointer;
+            z-index: 20;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 22px rgba(0,0,0,0.28);
+        }
+        .player-detail-shell {
+            perspective: 1400px;
+            width: min(88vw, 470px);
+            min-height: 680px;
+        }
+        .player-detail-card {
+            position: relative;
+            width: 100%;
+            min-height: 680px;
+            transform-style: preserve-3d;
+            transition: transform 0.65s cubic-bezier(0.175, 0.885, 0.32, 1.12);
+        }
+        .player-detail-card.is-flipped { transform: rotateY(180deg); }
+        .player-detail-face {
+            position: absolute;
+            inset: 0;
+            backface-visibility: hidden;
+            background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+            border-radius: 28px;
+            overflow: hidden;
+            box-shadow: 0 28px 70px rgba(0,0,0,0.38);
+            border: 1px solid rgba(255,255,255,0.55);
+            display: flex;
+            flex-direction: column;
+        }
+        .player-detail-back { transform: rotateY(180deg); padding: 24px; }
+        .player-detail-photo-wrap {
+            height: 390px;
+            background: linear-gradient(135deg, var(--idn-blue), #0f172a);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .player-detail-photo-wrap::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(15,23,42,0.42), transparent 52%);
+            pointer-events: none;
+        }
+        .player-detail-photo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .player-detail-photo-placeholder {
+            color: rgba(255,255,255,0.72);
+            font-size: 6rem;
+        }
+        .player-detail-number {
+            position: absolute;
+            left: 22px;
+            bottom: 18px;
+            z-index: 2;
+            background: rgba(15,23,42,0.78);
+            color: var(--idn-gold);
+            border: 1px solid rgba(197,160,89,0.7);
+            border-radius: 999px;
+            padding: 8px 16px;
+            font-weight: 950;
+            font-size: 1.35rem;
+            letter-spacing: 1px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+        }
+        .player-detail-body {
+            padding: 22px 24px 24px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            flex: 1;
+        }
+        .player-detail-name {
+            color: var(--idn-blue);
+            font-size: 2rem;
+            font-weight: 950;
+            letter-spacing: 1px;
+            line-height: 1.12;
+        }
+        .player-detail-meta {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .player-detail-pill {
+            border-radius: 999px;
+            padding: 8px 14px;
+            font-size: 0.95rem;
+            font-weight: 900;
+            background: rgba(0,85,143,0.08);
+            color: var(--idn-blue);
+            border: 1px solid rgba(0,85,143,0.16);
+        }
+        .player-detail-pill.gold {
+            background: rgba(197,160,89,0.16);
+            color: #8a6827;
+            border-color: rgba(197,160,89,0.35);
+        }
+        .player-detail-positions {
+            color: var(--text-muted);
+            font-weight: 800;
+            font-size: 0.95rem;
+            line-height: 1.45;
+        }
+        .player-detail-flip-hint {
+            margin-top: auto;
+            border: none;
+            border-radius: 16px;
+            padding: 13px 16px;
+            color: #fff;
+            background: linear-gradient(135deg, var(--idn-blue), #0f172a);
+            font-weight: 900;
+            cursor: pointer;
+            box-shadow: 0 10px 24px rgba(0,85,143,0.24);
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .player-detail-flip-hint:hover { transform: translateY(-2px); box-shadow: 0 14px 30px rgba(0,85,143,0.32); }
+        .player-detail-back-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+        .player-detail-back-title h3 {
+            color: var(--idn-blue);
+            font-size: 1.5rem;
+            font-weight: 950;
+            margin: 0;
+        }
+        .player-detail-back-sub {
+            color: var(--text-muted);
+            font-weight: 800;
+            font-size: 0.9rem;
+            margin-bottom: 16px;
+        }
+        .player-detail-field-wrap {
+            background: rgba(15,23,42,0.04);
+            border: 1px solid var(--border-light);
+            border-radius: 22px;
+            padding: 14px;
+        }
+        .player-detail-field-wrap .fielding-map {
+            max-width: 420px;
+            aspect-ratio: 1 / 0.82;
+        }
+        .detail-field-slot {
+            cursor: default;
+            opacity: 0.32;
+            background: rgba(15,23,42,0.28);
+            border-color: rgba(255,255,255,0.6);
+            transform: translate(-50%, -50%) scale(0.92);
+        }
+        .detail-field-slot::before {
+            content: '';
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.52);
+            box-shadow: none;
+            transition: all 0.25s ease;
+        }
+        .detail-field-slot.is-active {
+            opacity: 1;
+            background: rgba(197,160,89,0.96);
+            border-style: solid;
+            border-color: #ffffff;
+            box-shadow: 0 0 0 5px rgba(197,160,89,0.28), 0 0 22px rgba(197,160,89,0.86), 0 6px 18px rgba(0,0,0,0.28);
+            animation: detail-position-glow 1.9s ease-in-out infinite;
+        }
+        .detail-field-slot.is-active::before {
+            background: #fff;
+            box-shadow: 0 0 14px rgba(255,255,255,0.95);
+        }
+        .detail-field-slot.is-active::after { color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.75); }
+        .detail-field-slot.ep-slot.is-active { background: rgba(249,115,22,0.96); }
+        @keyframes detail-position-glow {
+            0%, 100% { filter: brightness(1); }
+            50% { filter: brightness(1.18); }
+        }
+        .player-detail-empty-pos {
+            text-align: center;
+            color: var(--text-muted);
+            font-weight: 800;
+            padding: 16px 0 0;
+        }
 
         /* MVP 卡片特效 & 累積小星星 */
         @keyframes subtle-gold-pulse { 
@@ -503,6 +729,18 @@
             .player-info { padding: 12px 8px; }
             .player-name-full { font-size: 1rem; margin-bottom: 6px; }
             .player-pos { font-size: 0.8rem; padding: 3px 10px; }
+            #player-detail-modal { padding: 12px; }
+            #player-detail-modal .modal-content { padding: 8px; }
+            .player-detail-shell { width: 94vw; min-height: 620px; }
+            .player-detail-card { min-height: 620px; }
+            .player-detail-photo-wrap { height: 330px; }
+            .player-detail-body { padding: 18px 18px 20px; gap: 12px; }
+            .player-detail-name { font-size: 1.7rem; }
+            .player-detail-back { padding: 18px; }
+            .player-detail-field-wrap { padding: 10px; }
+            .player-detail-field-wrap .fielding-map { aspect-ratio: 1 / 0.84; }
+            .detail-field-slot { width: 38px; height: 38px; }
+            .detail-field-slot::after { bottom: -18px; font-size: 0.78rem; }
 
             #lineup-builder { padding: 1.5rem 3%; }
             .roster-list { grid-template-columns: 1fr !important; }
@@ -837,6 +1075,50 @@
                 <i class="fas fa-trophy" style="color:var(--idn-gold);"></i> 榮譽榜 (MVP)
             </h3>
             <div id="mvp-leaderboard-list" style="max-height: 60vh; overflow-y: auto; padding-right: 5px;"></div>
+        </div>
+    </div>
+
+    <div id="player-detail-modal" class="modal">
+        <div class="modal-content">
+            <button type="button" class="player-detail-close" onclick="userCloseModal()" aria-label="關閉">&times;</button>
+            <div class="player-detail-shell">
+                <div id="player-detail-card" class="player-detail-card">
+                    <div class="player-detail-face player-detail-front">
+                        <div class="player-detail-photo-wrap" id="player-detail-photo-wrap"></div>
+                        <div class="player-detail-body">
+                            <div class="player-detail-name" id="player-detail-name">-</div>
+                            <div class="player-detail-meta">
+                                <span class="player-detail-pill gold" id="player-detail-number">#--</span>
+                                <span class="player-detail-pill" id="player-detail-handedness">投打：--</span>
+                            </div>
+                            <div class="player-detail-positions" id="player-detail-positions">守備位置：-</div>
+                            <button type="button" class="player-detail-flip-hint" onclick="togglePlayerDetailFlip(event)">
+                                <i class="fas fa-baseball-ball"></i> 查看守備位置圖
+                            </button>
+                        </div>
+                    </div>
+                    <div class="player-detail-face player-detail-back">
+                        <div class="player-detail-back-title">
+                            <h3 id="player-detail-field-title">守備位置</h3>
+                            <button type="button" class="player-detail-flip-hint" onclick="togglePlayerDetailFlip(event)" style="padding:9px 12px; font-size:0.9rem;">
+                                <i class="fas fa-undo"></i> 返回資料
+                            </button>
+                        </div>
+                        <div class="player-detail-back-sub">亮燈位置代表此球員可守備的位置</div>
+                        <div class="player-detail-field-wrap">
+                            <div class="fielding-map" id="player-detail-field-map">
+                                <div class="field-slot view-field-slot detail-field-slot" data-pos="C"></div> <div class="field-slot view-field-slot detail-field-slot" data-pos="P"></div>
+                                <div class="field-slot view-field-slot detail-field-slot" data-pos="1B"></div> <div class="field-slot view-field-slot detail-field-slot" data-pos="2B"></div>
+                                <div class="field-slot view-field-slot detail-field-slot" data-pos="3B"></div> <div class="field-slot view-field-slot detail-field-slot" data-pos="SS"></div>
+                                <div class="field-slot view-field-slot detail-field-slot" data-pos="LF"></div> <div class="field-slot view-field-slot detail-field-slot" data-pos="CF"></div>
+                                <div class="field-slot view-field-slot detail-field-slot" data-pos="FF"></div> <div class="field-slot view-field-slot detail-field-slot" data-pos="RF"></div>
+                                <div class="field-slot ep-slot view-field-slot detail-field-slot" data-pos="EP"></div>
+                            </div>
+                            <div class="player-detail-empty-pos" id="player-detail-empty-pos" style="display:none;">尚無守備位置資料</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -1416,6 +1698,69 @@
             }
         }
 
+        function normalizePlayerPositions(player) {
+            if (!player) return [];
+            let raw = [];
+            if (Array.isArray(player.posRaw)) raw = player.posRaw;
+            else if (player.positions) raw = String(player.positions).split(/[\/、,，|]+/);
+            return raw.map(function(pos) { return String(pos || '').trim().toUpperCase(); }).filter(Boolean);
+        }
+
+        function formatHandPart(value, suffix) {
+            const raw = String(value || '').trim();
+            if (!raw) return '';
+            if (raw.includes(suffix)) return raw;
+            return raw + suffix;
+        }
+
+        function getPlayerHandedness(player) {
+            const throwPart = formatHandPart(player.throwHand || player.throwing || player.throw || player.pitchHand, '投');
+            const batPart = formatHandPart(player.batHand || player.batting || player.bat || player.hitHand, '打');
+            return (throwPart + batPart) || '未填寫';
+        }
+
+        function togglePlayerDetailFlip(event) {
+            if (event) event.stopPropagation();
+            const card = document.getElementById('player-detail-card');
+            if (card) card.classList.toggle('is-flipped');
+        }
+
+        function openPlayerDetail(rowId) {
+            const player = allPlayers.find(function(p) { return String(p.rowId) === String(rowId); });
+            if (!player) return;
+
+            const card = document.getElementById('player-detail-card');
+            if (card) card.classList.remove('is-flipped');
+
+            const photoUrl = convertDriveLink(player.photo);
+            const photoWrap = document.getElementById('player-detail-photo-wrap');
+            photoWrap.innerHTML = photoUrl
+                ? '<img src="' + photoUrl + '" class="player-detail-photo" alt="' + escapeHtmlForLineup(player.name || '') + '">'
+                : '<i class="fas fa-user player-detail-photo-placeholder"></i>';
+            photoWrap.insertAdjacentHTML('beforeend', '<div class="player-detail-number">#' + escapeHtmlForLineup(player.number || '--') + '</div>');
+
+            document.getElementById('player-detail-name').textContent = player.name || '-';
+            document.getElementById('player-detail-number').textContent = '#' + (player.number || '--');
+            document.getElementById('player-detail-handedness').textContent = '投打：' + getPlayerHandedness(player);
+            document.getElementById('player-detail-positions').textContent = '守備位置：' + (player.positions || '-');
+            document.getElementById('player-detail-field-title').textContent = '#' + (player.number || '--') + ' ' + (player.name || '') + '｜守備位置';
+
+            renderPlayerDetailField(player);
+            openModalCommon('player-detail-modal');
+        }
+
+        function renderPlayerDetailField(player) {
+            const activePositions = new Set(normalizePlayerPositions(player));
+            const hasPositions = activePositions.size > 0;
+            document.querySelectorAll('#player-detail-field-map .detail-field-slot').forEach(function(slot) {
+                const pos = String(slot.getAttribute('data-pos') || '').trim().toUpperCase();
+                slot.classList.toggle('is-active', activePositions.has(pos));
+                slot.setAttribute('title', pos + (activePositions.has(pos) ? ' 可守備' : ''));
+            });
+            const empty = document.getElementById('player-detail-empty-pos');
+            if (empty) empty.style.display = hasPositions ? 'none' : 'block';
+        }
+
         function renderPlayers(players) {
             const pContainer = document.getElementById('players-container');
             if (players.length === 0) {
@@ -1426,7 +1771,7 @@
             pContainer.innerHTML = players.map(p => {
                 const isMVP = (currentMvpNumber && p.number == currentMvpNumber);
                 const photoUrl = convertDriveLink(p.photo);
-                const actionBtns = `<div class="player-admin-overlay"><button class="btn-action-edit" onclick="editPlayer(${p.rowId})"><i class="fas fa-edit"></i></button><button class="btn-action-del" onclick="deletePlayer(${p.rowId})"><i class="fas fa-trash-alt"></i></button></div>`;
+                const actionBtns = `<div class="player-admin-overlay" onclick="event.stopPropagation()"><button class="btn-action-edit" onclick="event.stopPropagation(); editPlayer(${p.rowId})"><i class="fas fa-edit"></i></button><button class="btn-action-del" onclick="event.stopPropagation(); deletePlayer(${p.rowId})"><i class="fas fa-trash-alt"></i></button></div>`;
                 const badgeHtml = isMVP ? `<div class="mvp-badge-icon">Weekly MVP</div>` : '';
                 
                 let starsHtml = '';
@@ -1439,7 +1784,7 @@
                     starsHtml = `<div class="mvp-stars-container">${starsArr.join('')}</div>`;
                 }
 
-                return `<div class="player-card reveal ${isMVP ? 'mvp-highlight-card' : ''}">
+                return `<div class="player-card reveal ${isMVP ? 'mvp-highlight-card' : ''}" onclick="openPlayerDetail(${p.rowId})" title="點擊查看球員詳細資料">
                     ${badgeHtml}
                     ${actionBtns}
                     <div class="player-img-container">
