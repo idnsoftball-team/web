@@ -424,6 +424,58 @@
             font-weight: 800;
             padding: 16px 0 0;
         }
+        .player-detail-mvp-panel {
+            margin-top: 14px;
+            background: rgba(197,160,89,0.10);
+            border: 1px solid rgba(197,160,89,0.24);
+            border-radius: 18px;
+            padding: 12px 14px;
+            display: none;
+        }
+        .player-detail-mvp-stars {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-bottom: 8px;
+        }
+        .player-detail-mvp-stars .mvp-star {
+            position: static;
+            font-size: 0.95rem;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.35);
+        }
+        .player-detail-mvp-title {
+            color: #8a6827;
+            font-size: 0.85rem;
+            font-weight: 950;
+            letter-spacing: 0.8px;
+            text-align: center;
+            text-transform: uppercase;
+            margin-bottom: 9px;
+        }
+        .player-detail-mvp-clips {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .player-detail-mvp-clip-btn {
+            border: 1px solid rgba(197,160,89,0.42);
+            background: #fff;
+            color: var(--idn-blue);
+            border-radius: 999px;
+            padding: 7px 12px;
+            font-size: 0.86rem;
+            font-weight: 950;
+            cursor: pointer;
+            box-shadow: 0 3px 8px rgba(15,23,42,0.08);
+            transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+        }
+        .player-detail-mvp-clip-btn:hover {
+            transform: translateY(-1px);
+            background: rgba(0,85,143,0.06);
+            box-shadow: 0 7px 16px rgba(15,23,42,0.12);
+        }
 
         /* MVP 卡片特效 & 累積小星星 */
         @keyframes subtle-gold-pulse { 
@@ -739,6 +791,8 @@
             .player-detail-back { padding: 18px; }
             .player-detail-field-wrap { padding: 10px; }
             .player-detail-field-wrap .fielding-map { aspect-ratio: 1 / 0.84; }
+            .player-detail-mvp-panel { margin-top: 10px; padding: 10px 11px; }
+            .player-detail-mvp-clip-btn { padding: 6px 10px; font-size: 0.82rem; }
             .detail-field-slot { width: 38px; height: 38px; }
             .detail-field-slot::after { bottom: -18px; font-size: 0.78rem; }
 
@@ -1093,7 +1147,7 @@
                             </div>
                             <div class="player-detail-positions" id="player-detail-positions">守備位置：-</div>
                             <button type="button" class="player-detail-flip-hint" onclick="togglePlayerDetailFlip(event)">
-                                <i class="fas fa-baseball-ball"></i> 查看守備位置圖
+                                <i class="fas fa-baseball-ball"></i> Information
                             </button>
                         </div>
                     </div>
@@ -1104,7 +1158,6 @@
                                 <i class="fas fa-undo"></i> 返回資料
                             </button>
                         </div>
-                        <div class="player-detail-back-sub">亮燈位置代表此球員可守備的位置</div>
                         <div class="player-detail-field-wrap">
                             <div class="fielding-map" id="player-detail-field-map">
                                 <div class="field-slot view-field-slot detail-field-slot" data-pos="C"></div> <div class="field-slot view-field-slot detail-field-slot" data-pos="P"></div>
@@ -1115,6 +1168,11 @@
                                 <div class="field-slot ep-slot view-field-slot detail-field-slot" data-pos="EP"></div>
                             </div>
                             <div class="player-detail-empty-pos" id="player-detail-empty-pos" style="display:none;">尚無守備位置資料</div>
+                        </div>
+                        <div class="player-detail-mvp-panel" id="player-detail-mvp-panel">
+                            <div class="player-detail-mvp-stars" id="player-detail-mvp-stars"></div>
+                            <div class="player-detail-mvp-title" id="player-detail-mvp-title">MVP Clips</div>
+                            <div class="player-detail-mvp-clips" id="player-detail-mvp-clips"></div>
                         </div>
                     </div>
                 </div>
@@ -1177,6 +1235,7 @@
         let deferredPrompt;
         let swReg = null;
         window.globalMvpStats = {};
+        window.globalMvpVideosByNumber = {};
         
         let allSchedules = [];
         let allPlayers = [];
@@ -1186,6 +1245,7 @@
         let isModalOpen = false;
         let currentMvpNumber = ""; 
         let currentLineupData = null; 
+        let currentPlayerDetailRowId = null; 
         
         const PASSWORD_SALT = "IDN_TEAM_2025_SECURE_SALT_!@#";
         const ADMIN_HASH = "c9f04b134812708966ccfdf8c4b3a04175730cd67aafd5cf479cf7acecdc343b";
@@ -1465,6 +1525,59 @@
         // -----------------------------------------------------
         // 渲染畫面邏輯 (套用資料)
         // -----------------------------------------------------
+        function normalizeNumberKey(value) {
+            const raw = String(value || '').trim();
+            return raw.replace(/^0+(?=\d)/, '');
+        }
+
+        function getNumberKeyCandidates(value) {
+            const raw = String(value || '').trim();
+            if (!raw) return [];
+            const stripped = normalizeNumberKey(raw);
+            const padded2 = stripped && stripped.length === 1 ? '0' + stripped : stripped;
+            return Array.from(new Set([raw, stripped, padded2].filter(Boolean)));
+        }
+
+        function getMvpCountForNumber(number) {
+            const stats = window.globalMvpStats || {};
+            const keys = getNumberKeyCandidates(number);
+            for (let i = 0; i < keys.length; i++) {
+                if (stats[keys[i]] !== undefined) return parseInt(stats[keys[i]], 10) || 0;
+            }
+            return 0;
+        }
+
+        function getMvpClipsForNumber(number) {
+            const clipsMap = window.globalMvpVideosByNumber || {};
+            const keys = getNumberKeyCandidates(number);
+            for (let i = 0; i < keys.length; i++) {
+                if (Array.isArray(clipsMap[keys[i]])) return clipsMap[keys[i]];
+            }
+            return [];
+        }
+
+        function applyMvpData(mvpData, options = {}) {
+            if (!mvpData) return;
+            const autoMvp = mvpData.autoMvp || {};
+            const stats = mvpData.mvpStats || {};
+            const clips = mvpData.mvpVideosByNumber || {};
+            const manualInput = document.getElementById('mvp-url-input');
+            const manualUrl = manualInput ? manualInput.value : '';
+
+            if (!manualUrl && autoMvp && autoMvp.url) {
+                currentMvpEmbedUrl = getYouTubeEmbedUrl(autoMvp.url);
+                currentMvpNumber = autoMvp.number || currentMvpNumber;
+            }
+            window.globalMvpStats = stats;
+            window.globalMvpVideosByNumber = clips;
+
+            if (options.rerender) renderPlayers(allPlayers);
+            if (currentPlayerDetailRowId) {
+                const currentDetailPlayer = allPlayers.find(function(p) { return String(p.rowId) === String(currentPlayerDetailRowId); });
+                if (currentDetailPlayer) renderPlayerDetailMvp(currentDetailPlayer);
+            }
+        }
+
         function applyCoreData(data) {
             if (data.hero && data.hero.bgUrl) {
                 const heroUrl = convertDriveLink(data.hero.bgUrl);
@@ -1478,6 +1591,8 @@
             document.getElementById('mvp-number-input').value = currentMvpNumber || "";
 
             window.globalMvpStats = data.mvpStats || {};
+            window.globalMvpVideosByNumber = data.mvpVideosByNumber || {};
+            if (data.mvpData) applyMvpData(data.mvpData, { rerender: false });
 
             allSchedules = data.schedules || [];
             renderScheduleTable();
@@ -1541,19 +1656,7 @@
                 applyVideos(vids); 
                 
                 if (out && out.mvpData) {
-                    const autoMvp = out.mvpData.autoMvp;
-                    const stats = out.mvpData.mvpStats;
-                    
-                    const manualUrl = document.getElementById('mvp-url-input').value;
-                    if (!manualUrl && autoMvp && autoMvp.url) {
-                        currentMvpEmbedUrl = getYouTubeEmbedUrl(autoMvp.url);
-                        currentMvpNumber = autoMvp.number;
-                    }
-                    
-                    if (stats && Object.keys(stats).length > 0) {
-                        window.globalMvpStats = stats;
-                        renderPlayers(allPlayers);
-                    }
+                    applyMvpData(out.mvpData, { rerender: true });
                 }
             } catch (e) { 
                 document.getElementById('video-container').innerHTML = '<p style="color:#ef4444;text-align:center;width:100%;font-weight:700;">影片載入失敗</p>'; 
@@ -1728,6 +1831,7 @@
         function openPlayerDetail(rowId) {
             const player = allPlayers.find(function(p) { return String(p.rowId) === String(rowId); });
             if (!player) return;
+            currentPlayerDetailRowId = rowId;
 
             const card = document.getElementById('player-detail-card');
             if (card) card.classList.remove('is-flipped');
@@ -1746,7 +1850,33 @@
             document.getElementById('player-detail-field-title').textContent = '#' + (player.number || '--') + ' ' + (player.name || '') + '｜守備位置';
 
             renderPlayerDetailField(player);
+            renderPlayerDetailMvp(player);
             openModalCommon('player-detail-modal');
+        }
+
+        function renderPlayerDetailMvp(player) {
+            const panel = document.getElementById('player-detail-mvp-panel');
+            const starsEl = document.getElementById('player-detail-mvp-stars');
+            const clipsEl = document.getElementById('player-detail-mvp-clips');
+            if (!panel || !starsEl || !clipsEl) return;
+
+            const starCount = getMvpCountForNumber(player.number);
+            const clips = getMvpClipsForNumber(player.number);
+
+            starsEl.innerHTML = starCount > 0
+                ? Array.from({ length: starCount }, function() { return '<i class="fas fa-star mvp-star"></i>'; }).join('')
+                : '';
+
+            clipsEl.innerHTML = clips.length > 0
+                ? clips.map(function(clip) {
+                    const id = String(clip.id || '').replace(/[^\w-]/g, '');
+                    const label = escapeHtmlForLineup(clip.dateLabel || 'MVP');
+                    const title = escapeHtmlForLineup(clip.title || 'MVP Clip');
+                    return '<button type="button" class="player-detail-mvp-clip-btn" title="' + title + '" onclick="event.stopPropagation(); playVideo(\'' + id + '\')">' + label + '</button>';
+                }).join('')
+                : '';
+
+            panel.style.display = (starCount > 0 || clips.length > 0) ? 'block' : 'none';
         }
 
         function renderPlayerDetailField(player) {
@@ -1775,7 +1905,7 @@
                 const badgeHtml = isMVP ? `<div class="mvp-badge-icon">Weekly MVP</div>` : '';
                 
                 let starsHtml = '';
-                const starCount = window.globalMvpStats[p.number] || 0;
+                const starCount = getMvpCountForNumber(p.number);
                 if (starCount > 0) {
                     let starsArr = [];
                     for(let i = 0; i < starCount; i++) {
