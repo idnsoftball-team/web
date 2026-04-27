@@ -234,19 +234,27 @@
             perspective: 1400px;
             width: min(88vw, 470px);
             min-height: 680px;
+            transform-style: preserve-3d;
+            -webkit-transform-style: preserve-3d;
         }
         .player-detail-card {
             position: relative;
             width: 100%;
             min-height: 680px;
             transform-style: preserve-3d;
+            -webkit-transform-style: preserve-3d;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
             transition: transform 0.65s cubic-bezier(0.175, 0.885, 0.32, 1.12);
         }
         .player-detail-card.is-flipped { transform: rotateY(180deg); }
         .player-detail-face {
             position: absolute;
             inset: 0;
+            -webkit-backface-visibility: hidden;
             backface-visibility: hidden;
+            transform-style: preserve-3d;
+            -webkit-transform-style: preserve-3d;
             background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
             border-radius: 28px;
             overflow: hidden;
@@ -255,7 +263,8 @@
             display: flex;
             flex-direction: column;
         }
-        .player-detail-back { transform: rotateY(180deg); padding: 24px; }
+        .player-detail-front { transform: rotateY(0deg) translateZ(0); }
+        .player-detail-back { transform: rotateY(180deg) translateZ(0); padding: 24px; }
         .player-detail-photo-wrap {
             height: 390px;
             background: linear-gradient(135deg, var(--idn-blue), #0f172a);
@@ -296,6 +305,13 @@
             font-size: 1.35rem;
             letter-spacing: 1px;
             box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            transform: translateZ(0);
+            transition: opacity 0.18s ease;
+        }
+        .player-detail-card.is-flipped .player-detail-front .player-detail-number {
+            opacity: 0;
         }
         .player-detail-body {
             padding: 22px 24px 24px;
@@ -684,6 +700,65 @@
         .lineup-date-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 58px; padding: 5px 10px; border-radius: 999px; background: rgba(197,160,89,0.16); color: #8a6827; border: 1px solid rgba(197,160,89,0.35); font-size: 0.86rem; font-weight: 950; letter-spacing: 0.4px; }
         .lineup-batting-desktop { display: flex; flex-direction: column; gap: 8px; }
         .lineup-batting-mobile { display: none; }
+        .lineup-batter-chip { position: relative; overflow: visible; }
+        .lineup-batter-chip .lineup-batter-order-badge {
+            position: absolute;
+            top: -8px;
+            left: 8px;
+            z-index: 3;
+            min-width: 21px;
+            height: 21px;
+            padding: 0 6px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 999px;
+            background: linear-gradient(135deg, var(--idn-gold), #a38142);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.72);
+            box-shadow: 0 5px 12px rgba(95,71,24,0.28);
+            font-size: 0.76rem;
+            font-weight: 950;
+            line-height: 1;
+            pointer-events: none;
+        }
+        .lineup-batter-chip .lineup-batter-main {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            overflow: visible;
+            text-overflow: clip;
+            white-space: nowrap;
+            text-align: center;
+            pointer-events: none;
+        }
+        .lineup-batter-chip .lineup-batter-num,
+        .lineup-batter-chip .lineup-batter-pos {
+            flex: 0 0 auto;
+            min-width: max-content;
+            overflow: visible;
+            text-overflow: clip;
+            white-space: nowrap;
+            text-align: left;
+            pointer-events: none;
+        }
+        .lineup-batter-chip .lineup-batter-name {
+            flex: 1 1 auto;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            text-align: left;
+            pointer-events: none;
+        }
+        .lineup-batter-chip .lineup-batter-pos {
+            opacity: .68;
+            font-size: .82em;
+            font-weight: 900;
+        }
         .lineup-view-bench { flex: 1; min-width: 0; background: var(--surface); padding: 18px; border-radius: 16px; border: 1px solid var(--border-light); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
         .lineup-view-bench h4 { text-align: center; color: var(--idn-blue); font-weight: 900; margin-bottom: 16px; font-size: 1.2rem; letter-spacing: 1px; }
 
@@ -821,6 +896,9 @@
             .lineup-mobile-col.right { padding-top: 24px; }
             .lineup-view-batting .player-chip { padding: 8px 8px; min-height: 42px; font-size: 1rem; }
             .lineup-view-batting .player-chip small { font-size: 0.82rem; }
+            .lineup-view-batting .lineup-batter-chip { padding: 9px 6px 8px; min-height: 44px; }
+            .lineup-view-batting .lineup-batter-chip .lineup-batter-main { padding-top: 1px; }
+            .lineup-view-batting .lineup-batter-chip .lineup-batter-order-badge { top: -7px; left: 7px; }
         }
 
         @media (max-width: 480px) {
@@ -828,6 +906,9 @@
             .bench-col, .batting-col { padding: 6px; }
             .player-chip { font-size: 0.9rem; padding: 4px 4px; }
             #batting-list .player-chip::before { font-size: 0.9rem; width: 14px; margin-right: 2px; }
+            .lineup-view-batting .lineup-batter-chip { font-size: 0.92rem; padding-left: 5px; padding-right: 5px; }
+            .lineup-batter-chip .lineup-batter-main { gap: 3px; }
+            .lineup-batter-chip .lineup-batter-order-badge { min-width: 19px; height: 19px; font-size: 0.7rem; padding: 0 5px; }
         }
     
         /* Toast & Banners & Tabs */
@@ -2171,9 +2252,21 @@
             return mm + '/' + dd;
         }
 
-        function renderLineupBatterChip(p, idx) {
-            const pos = p.position ? ' <small style="opacity:.65;font-weight:800;">' + escapeHtmlForLineup(p.position) + '</small>' : '';
-            return '<div class="player-chip" style="cursor:default;"><span>' + idx + '. #' + escapeHtmlForLineup(p.number) + ' ' + escapeHtmlForLineup(p.name) + pos + '</span></div>';
+        function renderLineupBatterChip(p, idx, mode) {
+            const number = escapeHtmlForLineup(p.number || '');
+            const name = escapeHtmlForLineup(p.name || '');
+            const position = escapeHtmlForLineup(p.position || '');
+            if (mode === 'mobile') {
+                return '<div class="player-chip lineup-batter-chip" style="cursor:default;">'
+                    + '<span class="lineup-batter-order-badge">' + idx + '</span>'
+                    + '<span class="lineup-batter-main">'
+                    + '<span class="lineup-batter-num">#' + number + '</span>'
+                    + '<span class="lineup-batter-name">' + name + '</span>'
+                    + (position ? '<span class="lineup-batter-pos">' + position + '</span>' : '')
+                    + '</span></div>';
+            }
+            const pos = position ? ' <small style="opacity:.65;font-weight:800;">' + position + '</small>' : '';
+            return '<div class="player-chip" style="cursor:default;"><span>' + idx + '. #' + number + ' ' + name + pos + '</span></div>';
         }
 
         function openLineupView() {
@@ -2207,8 +2300,8 @@
             const emptyBattingHtml = '<p style="text-align:center;color:var(--text-muted);font-weight:700;">尚無打序資料</p>';
             battingEl.innerHTML = batters.length ? batters.map((p, idx) => renderLineupBatterChip(p, idx + 1)).join('') : emptyBattingHtml;
             if (battingMobileEl) {
-                const left = batters.slice(0, 5).map((p, idx) => renderLineupBatterChip(p, idx + 1)).join('');
-                const right = batters.slice(5, 11).map((p, idx) => renderLineupBatterChip(p, idx + 6)).join('');
+                const left = batters.slice(0, 5).map((p, idx) => renderLineupBatterChip(p, idx + 1, 'mobile')).join('');
+                const right = batters.slice(5, 11).map((p, idx) => renderLineupBatterChip(p, idx + 6, 'mobile')).join('');
                 battingMobileEl.innerHTML = batters.length ? '<div class="lineup-mobile-col left">' + left + '</div><div class="lineup-mobile-col right">' + right + '</div>' : emptyBattingHtml;
             }
 

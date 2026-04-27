@@ -1,4 +1,4 @@
-const CACHE_NAME = 'idn-softball-v71-lineup-mobile-retry';
+const CACHE_NAME = 'idn-softball-v72-lineup-chip-iosflip-fix';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
