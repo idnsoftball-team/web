@@ -368,6 +368,9 @@
             font-weight: 950;
             margin: 0;
         }
+        .player-detail-back-title h3 .field-title-main { display: block; line-height: 1.08; }
+        .player-detail-back-title h3 .field-title-sub { display: block; line-height: 1.08; margin-top: 3px; }
+        .player-detail-return-text { display: inline-block; line-height: 1.05; text-align: center; }
         .player-detail-back-sub {
             color: var(--text-muted);
             font-weight: 800;
@@ -676,7 +679,11 @@
         .lineup-view-layout { display: flex; gap: 20px; align-items: stretch; }
         .lineup-view-field { flex: 1.5; min-width: 0; }
         .lineup-view-batting { flex: 1; min-width: 0; background: var(--surface); padding: 18px; border-radius: 16px; border: 1px solid var(--border-light); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        .lineup-view-batting h4 { text-align: center; color: var(--idn-blue); font-weight: 900; margin-bottom: 16px; font-size: 1.2rem; letter-spacing: 1px; }
+        .lineup-view-batting h4 { text-align: center; color: var(--idn-blue); font-weight: 900; margin: 0; font-size: 1.2rem; letter-spacing: 1px; }
+        .lineup-view-title-row { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 16px; }
+        .lineup-date-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 58px; padding: 5px 10px; border-radius: 999px; background: rgba(197,160,89,0.16); color: #8a6827; border: 1px solid rgba(197,160,89,0.35); font-size: 0.86rem; font-weight: 950; letter-spacing: 0.4px; }
+        .lineup-batting-desktop { display: flex; flex-direction: column; gap: 8px; }
+        .lineup-batting-mobile { display: none; }
         .lineup-view-bench { flex: 1; min-width: 0; background: var(--surface); padding: 18px; border-radius: 16px; border: 1px solid var(--border-light); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
         .lineup-view-bench h4 { text-align: center; color: var(--idn-blue); font-weight: 900; margin-bottom: 16px; font-size: 1.2rem; letter-spacing: 1px; }
 
@@ -805,6 +812,15 @@
             .fielding-row .fielding-map { aspect-ratio: 1 / 0.74; max-width: 380px; }
 
             .lineup-view-layout { flex-direction: column; }
+            .lineup-view-batting { padding: 20px 16px; }
+            .lineup-view-title-row { margin-bottom: 14px; }
+            .lineup-date-badge { font-size: 0.9rem; min-width: 56px; padding: 6px 10px; }
+            .lineup-batting-desktop { display: none !important; }
+            .lineup-batting-mobile { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; align-items: start; }
+            .lineup-mobile-col { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+            .lineup-mobile-col.right { padding-top: 24px; }
+            .lineup-view-batting .player-chip { padding: 8px 8px; min-height: 42px; font-size: 1rem; }
+            .lineup-view-batting .player-chip small { font-size: 0.82rem; }
         }
 
         @media (max-width: 480px) {
@@ -1134,7 +1150,7 @@
 
     <div id="player-detail-modal" class="modal">
         <div class="modal-content">
-            <button type="button" class="player-detail-close" onclick="userCloseModal()" aria-label="關閉">&times;</button>
+            <button type="button" class="player-detail-close" onclick="closePlayerDetailModal()" aria-label="關閉">&times;</button>
             <div class="player-detail-shell">
                 <div id="player-detail-card" class="player-detail-card">
                     <div class="player-detail-face player-detail-front">
@@ -1155,7 +1171,7 @@
                         <div class="player-detail-back-title">
                             <h3 id="player-detail-field-title">守備位置</h3>
                             <button type="button" class="player-detail-flip-hint" onclick="togglePlayerDetailFlip(event)" style="padding:9px 12px; font-size:0.9rem;">
-                                <i class="fas fa-undo"></i> 返回資料
+                                <i class="fas fa-undo"></i> <span class="player-detail-return-text">返回<br>資料</span>
                             </button>
                         </div>
                         <div class="player-detail-field-wrap">
@@ -1195,8 +1211,12 @@
                     </div>
                 </div>
                 <div class="lineup-view-batting">
-                    <h4>先發打擊順序</h4>
-                    <div id="view-batting-list" style="display:flex; flex-direction:column; gap:8px;"></div>
+                    <div class="lineup-view-title-row">
+                        <span class="lineup-date-badge" id="lineup-published-date-badge"></span>
+                        <h4>先發打擊順序</h4>
+                    </div>
+                    <div id="view-batting-list" class="lineup-batting-desktop"></div>
+                    <div id="view-batting-list-mobile" class="lineup-batting-mobile"></div>
                 </div>
                 <div class="lineup-view-bench">
                     <h4>預備席</h4>
@@ -1449,9 +1469,9 @@
             
             const now = Date.now();
             const diffMs = now - currentLineupData.timestamp;
-            const threeHours = 3 * 60 * 60 * 1000;
+            const LINEUP_VISIBLE_MS = 160 * 60 * 60 * 1000;
             
-            if (diffMs > threeHours) {
+            if (diffMs > LINEUP_VISIBLE_MS) {
                 btn.style.display = 'none';
             } else {
                 btn.style.display = 'flex';
@@ -1463,7 +1483,7 @@
                 }
                 setTimeout(() => { 
                     btn.style.display = 'none'; 
-                }, threeHours - diffMs);
+                }, LINEUP_VISIBLE_MS - diffMs);
             }
         }
 
@@ -1691,6 +1711,7 @@
                     <div style="text-align:center; padding: 20px;">
                         <i class="fas fa-exclamation-triangle" style="font-size:3rem; color:#ef4444; margin-bottom:15px;"></i>
                         <p style="color:#ef4444; font-weight:800; font-size:1.2rem; margin-bottom:10px;">系統載入失效，請重整網頁</p>
+                        <button type="button" onclick="window.location.reload()" style="border:none; background:linear-gradient(135deg,var(--idn-blue),#0f172a); color:#fff; padding:11px 18px; border-radius:12px; font-weight:900; margin:0 0 14px; cursor:pointer; box-shadow:0 8px 18px rgba(0,85,143,0.22);"><i class="fas fa-sync-alt"></i> 重新整理</button>
                         <div style="background:#fef2f2; border:1px solid #fca5a5; padding:10px; border-radius:8px; color:#991b1b; font-size:0.9rem; text-align:left; word-break:break-all; max-width:80vw; margin:0 auto;">
                             <strong>錯誤詳情：</strong><br>${e.message}
                         </div>
@@ -1702,7 +1723,7 @@
                 renderPlayers(allPlayers.filter(p => p.name.toLowerCase().includes(term) || p.number.toString().includes(term)));
             });
             
-            window.addEventListener('popstate', closeAllModals);
+            window.addEventListener('popstate', handlePopState);
             document.getElementById('admin-password').addEventListener('keydown', e => {
                 if (e.key === 'Enter') verifyPassword();
             });
@@ -1822,10 +1843,27 @@
             return (throwPart + batPart) || '未填寫';
         }
 
+        function isPlayerDetailVisible() {
+            const modal = document.getElementById('player-detail-modal');
+            return !!(modal && modal.style.display === 'flex');
+        }
+
+        function isPlayerDetailFlipped() {
+            const card = document.getElementById('player-detail-card');
+            return !!(card && card.classList.contains('is-flipped'));
+        }
+
         function togglePlayerDetailFlip(event) {
             if (event) event.stopPropagation();
             const card = document.getElementById('player-detail-card');
-            if (card) card.classList.toggle('is-flipped');
+            if (!card) return;
+            if (card.classList.contains('is-flipped')) {
+                if (isModalOpen) history.back();
+                else card.classList.remove('is-flipped');
+            } else {
+                card.classList.add('is-flipped');
+                if (isModalOpen) history.pushState({ modal: true, playerDetailBack: true }, null, location.href);
+            }
         }
 
         function openPlayerDetail(rowId) {
@@ -1847,7 +1885,7 @@
             document.getElementById('player-detail-number').textContent = '#' + (player.number || '--');
             document.getElementById('player-detail-handedness').textContent = '投打：' + getPlayerHandedness(player);
             document.getElementById('player-detail-positions').textContent = '守備位置：' + (player.positions || '-');
-            document.getElementById('player-detail-field-title').textContent = '#' + (player.number || '--') + ' ' + (player.name || '') + '｜守備位置';
+            document.getElementById('player-detail-field-title').innerHTML = '<span class="field-title-main">' + escapeHtmlForLineup(player.name || '-') + '｜</span><span class="field-title-sub">守備位置</span>';
 
             renderPlayerDetailField(player);
             renderPlayerDetailMvp(player);
@@ -2125,6 +2163,19 @@
             return item ? normalizeLineupPlayer(item, null) : null;
         }
 
+        function formatLineupBadgeDate(timestamp) {
+            const d = new Date(Number(timestamp));
+            if (isNaN(d.getTime())) return '';
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            const dd = String(d.getDate()).padStart(2, '0');
+            return mm + '/' + dd;
+        }
+
+        function renderLineupBatterChip(p, idx) {
+            const pos = p.position ? ' <small style="opacity:.65;font-weight:800;">' + escapeHtmlForLineup(p.position) + '</small>' : '';
+            return '<div class="player-chip" style="cursor:default;"><span>' + idx + '. #' + escapeHtmlForLineup(p.number) + ' ' + escapeHtmlForLineup(p.name) + pos + '</span></div>';
+        }
+
         function openLineupView() {
             if (!isLineupPublished()) {
                 showToast('目前尚未發布先發陣容', 'info');
@@ -2148,11 +2199,18 @@
                 slot.appendChild(chip);
             });
 
+            const dateBadge = document.getElementById('lineup-published-date-badge');
+            if (dateBadge) dateBadge.textContent = formatLineupBadgeDate(currentLineupData.timestamp) || '--/--';
+
             const battingEl = document.getElementById('view-batting-list');
-            battingEl.innerHTML = batters.map((p, idx) => {
-                const pos = p.position ? ' <small style="opacity:.65;font-weight:800;">' + escapeHtmlForLineup(p.position) + '</small>' : '';
-                return '<div class="player-chip" style="cursor:default;"><span>' + (idx + 1) + '. #' + escapeHtmlForLineup(p.number) + ' ' + escapeHtmlForLineup(p.name) + pos + '</span></div>';
-            }).join('') || '<p style="text-align:center;color:var(--text-muted);font-weight:700;">尚無打序資料</p>';
+            const battingMobileEl = document.getElementById('view-batting-list-mobile');
+            const emptyBattingHtml = '<p style="text-align:center;color:var(--text-muted);font-weight:700;">尚無打序資料</p>';
+            battingEl.innerHTML = batters.length ? batters.map((p, idx) => renderLineupBatterChip(p, idx + 1)).join('') : emptyBattingHtml;
+            if (battingMobileEl) {
+                const left = batters.slice(0, 5).map((p, idx) => renderLineupBatterChip(p, idx + 1)).join('');
+                const right = batters.slice(5, 11).map((p, idx) => renderLineupBatterChip(p, idx + 6)).join('');
+                battingMobileEl.innerHTML = batters.length ? '<div class="lineup-mobile-col left">' + left + '</div><div class="lineup-mobile-col right">' + right + '</div>' : emptyBattingHtml;
+            }
 
             const benchEl = document.getElementById('view-bench-list');
             benchEl.innerHTML = bench.map(p => '<div class="player-chip" style="cursor:default;border-color:#cbd5e1;color:var(--text-main);"><span>#' + escapeHtmlForLineup(p.number) + ' ' + escapeHtmlForLineup(p.name) + '</span></div>').join('') || '<p style="text-align:center;color:var(--text-muted);font-weight:700;">無預備席資料</p>';
@@ -2318,11 +2376,30 @@
                 m.style.opacity = 0;
                 setTimeout(() => m.style.display = 'none', 300);
             });
+            const detailCard = document.getElementById('player-detail-card');
+            if (detailCard) detailCard.classList.remove('is-flipped');
             document.getElementById('hero-video-frame').src = "";
             document.getElementById('yt-player').src = "";
             isModalOpen = false;
+            currentPlayerDetailRowId = null;
             resetForm('schedule');
             resetForm('player');
+        }
+
+        function handlePopState() {
+            const detailCard = document.getElementById('player-detail-card');
+            if (isPlayerDetailVisible() && detailCard && detailCard.classList.contains('is-flipped')) {
+                detailCard.classList.remove('is-flipped');
+                isModalOpen = true;
+                return;
+            }
+            closeAllModals();
+        }
+
+        function closePlayerDetailModal() {
+            const detailCard = document.getElementById('player-detail-card');
+            if (detailCard && detailCard.classList.contains('is-flipped')) detailCard.classList.remove('is-flipped');
+            if (isModalOpen) history.back();
         }
 
         function userCloseModal() {
