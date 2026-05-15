@@ -1,4 +1,4 @@
-const CACHE_NAME = 'idn-softball-v73-lineup-badge-offset';
+const CACHE_NAME = 'idn-softball-v74-mvpclips-linkfix';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
