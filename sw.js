@@ -1,4 +1,4 @@
-const CACHE_NAME = 'idn-softball-v75-mvpclips-anchor-fix';
+const CACHE_NAME = 'idn-softball-v76-mvpclips-touchlayer-fix';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',

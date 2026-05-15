@@ -265,6 +265,26 @@
         }
         .player-detail-front { transform: rotateY(0deg) translateZ(0); }
         .player-detail-back { transform: rotateY(180deg) translateZ(0); padding: 24px; }
+        /* v76: 翻到背面後把 3D 面板攤平成一般可點擊卡片，避免 iOS/PWA 觸控層失效 */
+        .player-detail-card.is-back-active {
+            transform: none !important;
+            transition: none !important;
+            -webkit-transform: none !important;
+        }
+        .player-detail-card.is-back-active .player-detail-front {
+            display: none !important;
+        }
+        .player-detail-card.is-back-active .player-detail-back {
+            position: relative;
+            inset: auto;
+            width: 100%;
+            min-height: 680px;
+            transform: none !important;
+            -webkit-transform: none !important;
+            -webkit-backface-visibility: visible;
+            backface-visibility: visible;
+            pointer-events: auto;
+        }
         .player-detail-photo-wrap {
             height: 390px;
             background: linear-gradient(135deg, var(--idn-blue), #0f172a);
@@ -488,11 +508,6 @@
             font-weight: 950;
             cursor: pointer;
             box-shadow: 0 3px 8px rgba(15,23,42,0.08);
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            touch-action: manipulation;
             transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
         }
         .player-detail-mvp-clip-btn:hover {
@@ -1352,6 +1367,7 @@
         let currentMvpNumber = ""; 
         let currentLineupData = null; 
         let currentPlayerDetailRowId = null; 
+        let playerDetailBackTimer = null;
         
         const PASSWORD_SALT = "IDN_TEAM_2025_SECURE_SALT_!@#";
         const ADMIN_HASH = "c9f04b134812708966ccfdf8c4b3a04175730cd67aafd5cf479cf7acecdc343b";
@@ -1939,15 +1955,28 @@
             return !!(card && card.classList.contains('is-flipped'));
         }
 
+        function resetPlayerDetailFlipState() {
+            const card = document.getElementById('player-detail-card');
+            if (playerDetailBackTimer) {
+                clearTimeout(playerDetailBackTimer);
+                playerDetailBackTimer = null;
+            }
+            if (card) card.classList.remove('is-back-active', 'is-flipped');
+        }
+
         function togglePlayerDetailFlip(event) {
             if (event) event.stopPropagation();
             const card = document.getElementById('player-detail-card');
             if (!card) return;
-            if (card.classList.contains('is-flipped')) {
+            if (card.classList.contains('is-flipped') || card.classList.contains('is-back-active')) {
                 if (isModalOpen) history.back();
-                else card.classList.remove('is-flipped');
+                else resetPlayerDetailFlipState();
             } else {
                 card.classList.add('is-flipped');
+                if (playerDetailBackTimer) clearTimeout(playerDetailBackTimer);
+                playerDetailBackTimer = setTimeout(function() {
+                    if (card.classList.contains('is-flipped')) card.classList.add('is-back-active');
+                }, 430);
                 if (isModalOpen) history.pushState({ modal: true, playerDetailBack: true }, null, location.href);
             }
         }
@@ -1995,11 +2024,10 @@
                 ? clips.map(function(clip) {
                     const id = String(clip.id || '').replace(/[^\w-]/g, '');
                     const rawUrl = String(clip.url || (id ? ('https://www.youtube.com/watch?v=' + id) : '')).trim();
-                    const href = rawUrl || '#';
+                    const playable = rawUrl || id;
                     const label = escapeHtmlForLineup(clip.dateLabel || 'MVP');
                     const title = escapeHtmlForLineup(clip.title || 'MVP Clip');
-                    const safeHref = escapeHtmlForLineup(href);
-                    return '<a class="player-detail-mvp-clip-btn" href="' + safeHref + '" target="_blank" rel="noopener noreferrer" title="' + title + '" onclick="event.stopPropagation(); if(this.getAttribute(\'href\') === \'#\'){ event.preventDefault(); showToast(\'MVP 影片連結缺失\', \'error\'); }">' + label + '</a>';
+                    return '<button type="button" class="player-detail-mvp-clip-btn" title="' + title + '" onclick="event.stopPropagation(); openMvpClipLink(\'' + escapeJsString(playable) + '\')">' + label + '</button>';
                 }).join('')
                 : '';
 
@@ -2220,6 +2248,34 @@
             return String(value ?? '').replace(/[&<>'"]/g, function(ch) {
                 return ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'})[ch];
             });
+        }
+
+        function openMvpClipLink(rawValue) {
+            const raw = String(rawValue || '').trim();
+            if (!raw) {
+                showToast('MVP 影片連結缺失', 'error');
+                return;
+            }
+            let url = raw;
+            if (raw.indexOf('http') !== 0) {
+                const cleanId = raw.replace(/[^\w-]/g, '');
+                if (cleanId.length === 11) url = 'https://www.youtube.com/watch?v=' + cleanId;
+            }
+            if (url.indexOf('http') === 0) {
+                window.open(url, '_blank', 'noopener,noreferrer');
+                return;
+            }
+            showToast('MVP 影片連結格式異常', 'error');
+        }
+
+        function escapeJsString(value) {
+            return String(value ?? '')
+                .replace(/\\/g, '\\\\')
+                .replace(/'/g, "\\'")
+                .replace(/\r/g, '\\r')
+                .replace(/\n/g, '\\n')
+                .replace(/\u2028/g, '\\u2028')
+                .replace(/\u2029/g, '\\u2029');
         }
 
         function normalizeLineupPlayer(player, fallbackOrder) {
@@ -2477,8 +2533,7 @@
                 m.style.opacity = 0;
                 setTimeout(() => m.style.display = 'none', 300);
             });
-            const detailCard = document.getElementById('player-detail-card');
-            if (detailCard) detailCard.classList.remove('is-flipped');
+            resetPlayerDetailFlipState();
             document.getElementById('hero-video-frame').src = "";
             document.getElementById('yt-player').src = "";
             isModalOpen = false;
@@ -2489,8 +2544,8 @@
 
         function handlePopState() {
             const detailCard = document.getElementById('player-detail-card');
-            if (isPlayerDetailVisible() && detailCard && detailCard.classList.contains('is-flipped')) {
-                detailCard.classList.remove('is-flipped');
+            if (isPlayerDetailVisible() && detailCard && (detailCard.classList.contains('is-flipped') || detailCard.classList.contains('is-back-active'))) {
+                resetPlayerDetailFlipState();
                 isModalOpen = true;
                 return;
             }
@@ -2498,8 +2553,7 @@
         }
 
         function closePlayerDetailModal() {
-            const detailCard = document.getElementById('player-detail-card');
-            if (detailCard && detailCard.classList.contains('is-flipped')) detailCard.classList.remove('is-flipped');
+            resetPlayerDetailFlipState();
             if (isModalOpen) history.back();
         }
 
