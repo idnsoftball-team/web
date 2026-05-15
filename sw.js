@@ -1,4 +1,4 @@
-const CACHE_NAME = 'idn-softball-v74-mvpclips-linkfix';
+const CACHE_NAME = 'idn-softball-v75-mvpclips-anchor-fix';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
